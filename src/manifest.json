@@ -1,0 +1,26 @@
+{
+  "manifest_version": 2,
+
+  "name": "List Finder",
+  "description": "This extension is an exploration of finding lists on webpages.",
+  "version": "1.0",
+
+  "browser_action": {
+    "default_icon": "icons/icon.png"
+  },
+  "permissions": [
+    "tabs",
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "page": "pages/background.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["scripts/lib/utilities.js", "scripts/lib/jquery.js", "scripts/lib/underscore-min.js", "scripts/content/content_script.js"]
+    }
+  ],
+  "web_accessible_resources": ["scripts/lib/utilities.js", "scripts/lib/jquery.js", "scripts/lib/underscore-min.js", "scripts/lib/underscore-min.map"]
+}

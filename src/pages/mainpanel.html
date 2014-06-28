@@ -1,0 +1,44 @@
+<html>
+ 
+<head>
+	<script type="text/javascript" src="../scripts/lib/jquery.js"></script>
+	<script type="text/javascript" src="../scripts/lib/jquery_csv.js"></script>
+	<script type="text/javascript" src="../scripts/lib/jquery-ui.js"></script>
+	<script type="text/javascript" src="../scripts/lib/utilities.js"></script>
+	<script type="text/javascript" src="../scripts/lib/underscore-min.js"></script>
+	<script type="text/javascript" src="../scripts/background/mainpanel_script.js"></script>
+	
+	<style>
+		.no-close .ui-dialog-titlebar-close {
+		  display: none;
+		}
+	</style>
+	
+	<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+	
+</head>
+<body>
+ <button id="run">Run</button><br><br>
+ 
+ <button id="start_interaction">Demonstrate Interaction</button><br>
+ <button id="start_list">Demonstrate List</button>
+ 
+ <div id="result_table_div">
+	 <table id="result_table">
+	 </table>
+ </div>
+
+ <div id="new_list" style="display: none;">
+	  <div class="buttonset">
+		<input class="radio" type="radio" class="next_button" name="radio"><label for="next_button">Next Button</label>
+		<input class="radio" type="radio" class="more_button" name="radio"><label for="more_button">More Button</label>
+		<input class="radio" type="radio" class="scroll_for_more" name="radio"><label for="scroll_for_more">Scroll For More</label>
+	  </div>
+	  <form name="itemLimit">
+		Limit on items to collect: <input type="text" class="itemLimit" placeholder="100000">
+	  </form>
+	  <div class="list">Click on a few list items, and we'll show the full list here.  If you change your mind about including a list item, just click it again to remove it.</div>
+ </div>
+ 
+</body>
+</html>
