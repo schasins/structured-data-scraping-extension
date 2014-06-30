@@ -19,6 +19,26 @@ $(setUp);
 var program = [];
 
 /**********************************************************************
+ * Show visual representation of the program
+**********************************************************************/
+
+function programView(){
+  var div = $("#result_table_div")
+  div.html("");
+  for (var i = 0; i<program.length; i++){
+    var item = program[i];
+    var str = "<div><div class='prog_"+item["type"]+"'>"+item["type"]+"</div>";
+    for (var j = 0; j<item["first_row_elems"].length; j++){
+      var elem = item["first_row_elems"][j];
+      str += "<div class='first_row_elem'>"+elem+"</div>";
+    }
+    str += "</div>";
+    var new_div = $(str);
+    div.append(new_div);
+  }
+}
+
+/**********************************************************************
  * Guide the user through defining a list selector
 **********************************************************************/
 
@@ -27,7 +47,7 @@ var current_list = null;
 /* Turn list processing on and off */
 
 function startProcessingList(){
-	current_list = {"selector": {}, "next_button_data": {}, "item_limit": 100000};
+	current_list = {"type": "list", "selector": {}, "next_button_data": {}, "item_limit": 100000, "demo_list":[], "first_row_elems": []};
 	program.push(current_list);
 	utilities.sendMessage("mainpanel", "content", "startProcessingList", "");
 	var div = $("#result_table_div");
@@ -43,16 +63,18 @@ function startProcessingList(){
 }
 
 function stopProcessingList(){
+	var demo_list = current_list["demo_list"];
+	if (demo_list.length > 0) {current_list["first_row_elems"] = [demo_list[0]];}
 	current_list = null;
 	utilities.sendMessage("mainpanel", "content", "stopProcessingList", "");
-	$("#result_table_div").html("");
+	programView();
 }
 
 function cancelProcessingList(){
 	program = _.without(program, current_list);
 	current_list = null;
 	utilities.sendMessage("mainpanel", "content", "stopProcessingList", "");
-	$("#result_table_div").html("");
+	programView();
 }
 
 /* Collect list information */
@@ -62,6 +84,7 @@ function processSelectorAndListData(data){
   //store the new selector with the program's list object
   current_list["selector"] = data["selector"];
   //display the list so the user gets feedback
+  current_list["demo_list"] = data["list"];
   var list = data["list"];
   var $listDiv = $(".list-active");
   var contentString = ""
