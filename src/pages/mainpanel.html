@@ -24,15 +24,15 @@
  <button id="start_list">Demonstrate List</button>
  
  <div id="result_table_div">
-	 <table id="result_table">
-	 </table>
  </div>
 
  <div id="new_list" style="display: none;">
+	 <button class="done">Done</button>
+	 <button class="cancel">Cancel</button>
 	  <div class="buttonset">
-		<input class="radio" type="radio" class="next_button" name="radio"><label for="next_button">Next Button</label>
-		<input class="radio" type="radio" class="more_button" name="radio"><label for="more_button">More Button</label>
-		<input class="radio" type="radio" class="scroll_for_more" name="radio"><label for="scroll_for_more">Scroll For More</label>
+		<input class="radio" type="radio" id="next_button" name="radio"><label for="next_button">Next Button</label>
+		<input class="radio" type="radio" id="more_button" name="radio"><label for="more_button">More Button</label>
+		<input class="radio" type="radio" id="scroll_for_more" name="radio"><label for="scroll_for_more">Scroll For More</label>
 	  </div>
 	  <form name="itemLimit">
 		Limit on items to collect: <input type="text" class="itemLimit" placeholder="100000">

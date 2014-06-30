@@ -11,7 +11,7 @@ function setUp(){
   
   //handle user interactions with the mainpanel
   $("#start_list").click(startProcessingList);
-  $("button").button();
+  $("button").button();	
 }
 
 $(setUp);
@@ -30,34 +30,29 @@ function startProcessingList(){
 	current_list = {"selector": {}, "next_button_data": {}, "item_limit": 100000};
 	program.push(current_list);
 	utilities.sendMessage("mainpanel", "content", "startProcessingList", "");
-	var dialog = $("<div></div>");
-	dialog.html($("#new_list").html());
-	dialog.dialog({
-	  dialogClass: "no-close",
-	  buttons: [
-	    {text: "Done", click: stopProcessingList},
-	    {text: "Cancel", click: cancelProcessingList}
-	  ],
-	  open: function() {
-	    $(".radio").click(processNextButtonType);
-	    $(".itemLimit").on('input propertychange paste', processItemLimit);
-	    $(".buttonset").buttonset();
-	    dialog.find(".list").addClass("list-active");
-	  }
-	});
+	var div = $("#result_table_div");
+	div.html($("#new_list").html());
+	
+	div.find(".list").addClass("list-active"); //how we'll display list
+	div.find(".radio").click(processNextButtonType);
+	div.find(".itemLimit").on('input propertychange paste', processItemLimit);
+	div.find(".buttonset").buttonset();
+	div.find(".done").click(stopProcessingList);
+	div.find(".cancel").click(cancelProcessingList);
+	div.find("button").button();
 }
 
 function stopProcessingList(){
 	current_list = null;
 	utilities.sendMessage("mainpanel", "content", "stopProcessingList", "");
-	$(this).dialog( "close" );
+	$("#result_table_div").html("");
 }
 
 function cancelProcessingList(){
 	program = _.without(program, current_list);
 	current_list = null;
 	utilities.sendMessage("mainpanel", "content", "stopProcessingList", "");
-	$(this).dialog( "close" );
+	$("#result_table_div").html("");
 }
 
 /* Collect list information */
