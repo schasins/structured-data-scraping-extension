@@ -9,8 +9,15 @@
 	<script type="text/javascript" src="../scripts/background/mainpanel_script.js"></script>
 	
 	<style>
+		body{
+			font-family: Tahoma, Geneva, sans-serif;
+			font-size: 12px;
+			padding: 0px;
+			margin: 0px;
+			width: 100%;
+		}
 		.no-close .ui-dialog-titlebar-close {
-		  display: none;
+			display: none;
 		}
 		.prog_list {
 			background-color: #FFA03B;
@@ -19,20 +26,56 @@
 			background-color: #3BD4FF;
 		}
 		.first_row_elem{
-			background-color: #E8E8E8;
+			background-color: #F2F2F2;
+			float: left;
+			padding: 2px;
+			margin: 2px;
+		}
+		#first_row{
+			clear:both;
+		}
+		#run{
+			width: 100%;
+		}
+		.top_button{
+			width: 49%;
+		}
+		.left {
+			float: left;
+		}
+		.right {
+			float: right;
+		}
+		.clear {
+			clear: both;
+		}
+		#top_buttons{
+			width: 98%;
+		}
+		#top_buttons_wrapper{
+			padding: 1%;
+			background-color: #FAFAFA;
+			overflow: auto;
+			width: 100%;
+			-webkit-box-shadow: 0 0 5px #888;
+			box-shadow: 0 0 5px #888;
+			margin-bottom: 10px;
 		}
 	</style>
 	
-	<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+	<link rel="stylesheet" type="text/css" href="../style/jquery-ui.theme.min.css" />
 	
 </head>
 <body>
- <button id="run">Run</button><br><br>
- 
- <button id="start_interaction">Demonstrate Interaction</button><br>
- <button id="start_list">Demonstrate List</button>
- 
- <div id="result_table_div">
+<div id="top_buttons_wrapper" class="clear">
+<div id="top_buttons" class="clear">
+ <button id="run">Run</button>
+ <button id="start_interaction" class="top_button left">Demonstrate Interaction</button>
+ <button id="start_list" class="top_button right">Demonstrate List</button>
+</div>
+</div>
+
+ <div id="result_table_div" class="clear">
  </div>
 
  <div id="new_list" style="display: none;">

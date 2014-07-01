@@ -25,17 +25,21 @@ var program = [];
 function programView(){
   var div = $("#result_table_div")
   div.html("");
+  var first_row_str = "<div id='first_row'>First Row:<br>";
   for (var i = 0; i<program.length; i++){
     var item = program[i];
-    var str = "<div><div class='prog_"+item["type"]+"'>"+item["type"]+"</div>";
+    var program_item_str = "<div><div class='prog_"+item["type"]+"'>"+item["type"]+"</div>";
     for (var j = 0; j<item["first_row_elems"].length; j++){
       var elem = item["first_row_elems"][j];
-      str += "<div class='first_row_elem'>"+elem+"</div>";
+      elem_str = "<div class='first_row_elem'>"+elem+"</div>";
+      program_item_str += elem_str;
+      first_row_str += elem_str;
     }
-    str += "</div>";
-    var new_div = $(str);
-    div.append(new_div);
+    program_item_str += "</div>";
+    div.append($(program_item_str));
   }
+  first_row_str += "</div>";
+  div.append($(first_row_str));
 }
 
 /**********************************************************************
