@@ -63,7 +63,6 @@ function startProcessingList(){
 	div.find(".buttonset").buttonset();
 	div.find(".done").click(stopProcessingList);
 	div.find(".cancel").click(cancelProcessingList);
-	div.find("button").button();
 }
 
 function stopProcessingList(){
