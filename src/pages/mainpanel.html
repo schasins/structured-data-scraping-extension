@@ -10,7 +10,7 @@
 	
 	<style>
 		body{
-			font-family: Tahoma, Geneva, sans-serif;
+			font-family: Trebuchet MS,Tahoma,Verdana,Arial,sans-serif;
 			font-size: 12px;
 			padding: 0px;
 			margin: 0px;
@@ -54,12 +54,20 @@
 		}
 		#top_buttons_wrapper{
 			padding: 1%;
-			background-color: #F5F5F5;
+			background-color: #FCFCFC;
 			overflow: auto;
 			width: 100%;
 			-webkit-box-shadow: 0 0 5px #888;
 			box-shadow: 0 0 5px #888;
-			margin-bottom: 10px;
+			margin-bottom: 5px;
+		}
+		#result_table_div{
+			padding: 10px;
+		}
+		.list{
+			background-color: #FAFAFA;
+			padding: 5px;
+			border: 1px solid #D6D6D6;
 		}
 	</style>
 	
@@ -81,9 +89,9 @@
  </div>
 
  <div id="new_list" style="display: none;">
-	 <button class="done">Done</button>
-	 <button class="cancel">Cancel</button>
-	  <div class="buttonset">
+	 <button class="done right">Done</button>
+	 <button class="cancel right">Cancel</button>
+	  <div class="buttonset clear">
 		<input class="radio" type="radio" id="next_button" name="radio"><label for="next_button">Next Button</label>
 		<input class="radio" type="radio" id="more_button" name="radio"><label for="more_button">More Button</label>
 		<input class="radio" type="radio" id="scroll_for_more" name="radio"><label for="scroll_for_more">Scroll For More</label>
