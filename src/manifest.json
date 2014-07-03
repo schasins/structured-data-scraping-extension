@@ -11,7 +11,8 @@
   "permissions": [
     "tabs",
     "http://*/*",
-    "https://*/*"
+    "https://*/*",
+    "webRequest"
   ],
   "background": {
     "page": "pages/background.html"
