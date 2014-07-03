@@ -776,5 +776,5 @@ function injectScripts(paths) {
 
 // TODO(sbarman): need to wrap these so variables don't escape into the
 // enclosing scope
-injectScripts(["scripts/lib/record-replay/content_injected.js",
-				"scripts/lib/record-replay/common_params.js"]);
+injectScripts(["scripts/lib/record-replay/common_params.js", 
+               "scripts/lib/record-replay/content_injected.js"]);
