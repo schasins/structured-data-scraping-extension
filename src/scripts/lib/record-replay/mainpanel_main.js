@@ -1381,7 +1381,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 }, filter, ['blocking']);
 
 chrome.webRequest.onCompleted.addListener(function(details) {
-  bgLog.log('completed', details);
+  //bgLog.log('completed', details);
   addWebRequestEvent(details, 'completed');
 }, filter);
 

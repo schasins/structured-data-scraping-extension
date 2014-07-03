@@ -14,6 +14,7 @@ function setUp(){
   
   //handle user interactions with the mainpanel
   $("#start_list").click(startProcessingList);
+  $("#start_demonstration").click(startProcessingDemonstration);
   $("#run").click(run);
   $("button").button();	
 }
@@ -188,6 +189,43 @@ function arrayOfArraysToTable(arrayOfArrays){
     $table.append($tr);
   }
   return $table;
+}
+
+/**********************************************************************
+ * Guide the user through making a demonstration recording
+**********************************************************************/
+
+var current_demonstration = null;
+
+function startProcessingDemonstration(){
+	current_demonstration = {"type": "demonstration", "trace": [], "first_row_elems": []};
+	program.push(current_demonstration);
+  
+  var div = $("#result_table_div");
+	div.html($("#new_demonstration").html());
+	
+	div.find(".start_recording").click(startRecording);
+	div.find(".done_recording").click(doneRecording);
+	div.find(".cancel_recording").click(cancelRecording);
+}
+
+function startRecording(){
+  SimpleRecord.startRecording();
+}
+
+function doneRecording(){
+  current_demonstration["trace"] = SimpleRecord.stopRecording();
+  console.log("trace", current_demonstration["trace"]);
+	//TODO: whatever has been captured during the demo, add to first row
+	current_demonstration = null;
+	programView();
+}
+
+function cancelRecording(){
+  SimpleRecord.stopRecording();
+	program = _.without(program, current_demonstration);
+	current_demonstration = null;
+	programView();
 }
 
 /**********************************************************************
