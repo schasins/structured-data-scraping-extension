@@ -48,6 +48,17 @@ function runHelper(remaining_program, row_so_far){
   }
 }
 
+function runDemonstration(remaining_program, row_so_far){
+  var curr_program = remaining_program[0];
+  var new_remaining_program = remaining_program.slice(1);
+  SimpleRecord.replay(curr_program["trace"], function(){replayCallback(new_remaining_program,row_so_far);});
+}
+
+function replayCallback(remaining_program){
+  //run the rest of the program for this row
+  runHelper(remaining_program,new_row_so_far);
+}
+
 var lrd = {"current_items": [], "counter": 0, "total_counter": 0, "no_more_items": false, "type": null, "skip_next": true}; //list retrieval data
 
 function runList(remaining_program, row_so_far){
