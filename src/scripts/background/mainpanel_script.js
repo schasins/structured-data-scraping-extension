@@ -54,7 +54,7 @@ function runDemonstration(remaining_program, row_so_far){
   var curr_program = remaining_program[0];
   var new_remaining_program = remaining_program.slice(1);
   rd = {"remaining_program": new_remaining_program, "row_so_far": row_so_far};
-  SimpleRecord.replay(curr_program["trace"], function(){replayCallback(new_remaining_program,row_so_far);});
+  SimpleRecord.replay(curr_program["trace"], replayCallback);
 }
 
 function replayCallback(replayObject){
