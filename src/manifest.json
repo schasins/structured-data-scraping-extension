@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
 
-  "name": "List Finder",
-  "description": "This extension is an exploration of finding lists on webpages.",
+  "name": "Relation Scraper",
+  "description": "This extension scrapes relational data from highly structured webpages.",
   "version": "1.0",
 
   "browser_action": {

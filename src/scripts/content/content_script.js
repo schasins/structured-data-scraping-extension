@@ -34,10 +34,13 @@ function setUp(){
   utilities.listenForMessage("mainpanel", "content", "startProcessingList", startProcessingList);
   utilities.listenForMessage("mainpanel", "content", "stopProcessingList", stopProcessingList);
   utilities.listenForMessage("mainpanel", "content", "startProcessingNextButton", startProcessingNextButton);
+  utilities.listenForMessage("mainpanel", "content", "getMoreItems", getMoreItems);
+  utilities.listenForMessage("mainpanel", "content", "getNextPage", getNextPage);
   
   //messages sent by this component
-  //utilities.listenForMessage("content", "mainpanel", "selectorAndListData", data);
-  //utilities.listenForMessage("content", "mainpanel", "nextButtonData", data);
+  //utilities.sendMessage("content", "mainpanel", "selectorAndListData", data);
+  //utilities.sendMessage("content", "mainpanel", "nextButtonData", data);
+  //utilities.sendMessage("content", "mainpanel", "moreItems", moreItems);
 }
 
 $(setUp);
@@ -464,10 +467,78 @@ function nextButtonClick(event){
 }
 
 /**********************************************************************
- * Functions for the mainpanel to call when collecting the real data
+ * For the mainpanel to call when collecting the real data
 **********************************************************************/
 
-function findNextButton(){
+function useSelector(selector){
+    highlight(current_selector_nodes,"initial");
+    current_selector_nodes = interpretListSelector(selector["dict"], selector["exclude_first"]);
+    highlight(current_selector_nodes,"#9EE4FF");
+    list = _.map(current_selector_nodes,function(a){return $(a).text();});
+    return list;
+}
+
+function wholeList(selector, item_limit, get_more_items_func, send_message_func){
+  return wholeListHelper([],0,selector, item_limit, get_more_items_func, send_message_func);
+}
+
+function wholeListHelper(list_so_far, steps_since_progress, selector, item_limit, get_more_items_func, send_message_func){
+  if (list_so_far.length < item_limit && steps_since_progress <= 5){
+    var old_length = list_so_far.length;
+    get_more_items_func();
+    list_so_far = useSelector(selector);
+    steps_since_progress ++;
+    if (list_so_far.length > old_length){
+      steps_since_progress = 0;
+    }
+    setTimeout(function(){wholeListHelper(list_so_far, steps_since_progress, selector, item_limit, get_more_items_func, send_message_func)},500);
+  }
+  else{
+    send_message_func(list_so_far);
+  }
+}
+
+function getMoreItems(data){
+  var send_done = function(list){utilities.sendMessage("content", "mainpanel", "moreItems", {"items":list,"no_more_items":true});};
+  var send_not_done = function(list){utilities.sendMessage("content", "mainpanel", "moreItems", {"items":list,"no_more_items":false});};
+  
+  var selector = data["selector"];
+  var item_limit = data["item_limit"];
+  var next_button_type = data["next_button_data"]["type"];
+  
+  if (next_button_type === "scroll_for_more"){
+    var get_more_items = function(){window.scrollBy(0,1000);};
+    wholeListHelper(selector, item_limit, get_more_items, send_done);
+  }
+  else if (next_button_type === "more_button"){
+    var get_more_items = function(){getNextPage(data)};
+    wholeListHelper(selector, item_limit, get_more_items, send_done);
+  }
+  else if (next_button_type === "next_button"){
+    //send the current page's contents.  next button clicking handled elsewhere
+    var list_so_far = useSelector(selector);
+    var button = findNextButton(data["next_button_data"]);
+    if (button === null){
+      send_done(list_so_far);
+    }
+    else{
+      send_not_done(list_so_far);
+    }
+  }
+}
+
+function getNextPage(data){
+  var button = findNextButton(data["next_button_data"]);
+  if (button !== null){
+    button.click();
+  }
+}
+
+function findNextButton(next_button_data){
+  var next_or_more_button_tag = next_button_data["tag"];
+  var next_or_more_button_text = next_button_data["text"];
+  var next_or_more_button_id = next_button_data["id"];
+  var next_or_more_button_xpath = next_button_data["xpath"];
   var button = null;
   var candidate_buttons = $(next_or_more_button_tag).filter(function(){ return $(this).text() === next_or_more_button_text;})
   //hope there's only one button
@@ -477,7 +548,6 @@ function findNextButton(){
   else{
     //if not and demo button had id, try using the id
     if (next_or_more_button_id !== undefined && next_or_more_button_id !== ""){
-      console.log("trying id");
       button = $("#"+next_or_more_button_id);
     }
     else{
