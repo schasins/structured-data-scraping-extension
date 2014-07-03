@@ -394,9 +394,8 @@ var Record = (function RecordClosure() {
 var Replay = (function ReplayClosure() {
   var replayLog = getLog('replay');
 
-  function Replay(ports, scriptServer, user) {
+  function Replay(ports, user) {
     this.ports = ports;
-    this.scriptServer = scriptServer;
     /* The user interface to interact with the replayer */
     this.user = user;
     this.record = new Record(ports);
@@ -704,17 +703,9 @@ var Replay = (function ReplayClosure() {
       var replay = this;
 
       /* save the recorded replay execution */
-      var scriptServer = this.scriptServer;
       setTimeout(function() {
         var replayEvents = record.getEvents();
         var scriptId = replay.scriptId;
-
-        if (params.replay.saveReplay && scriptId &&
-            replayEvents.length > 0) {
-          scriptServer.saveScript('replay ' + scriptId, replayEvents, params,
-                                  scriptId);
-          replayLog.log('saving replay:', replayEvents);
-        }
       }, 1000);
 
       if (this.cont) {
@@ -1146,10 +1137,9 @@ var User = (function UserClosure() {
 var Controller = (function ControllerClosure() {
   var ctlLog = getLog('controller');
 
-  function Controller(record, replay, scriptServer, ports) {
+  function Controller(record, replay, ports) {
     this.record = record;
     this.replay = replay;
-    this.scriptServer = scriptServer;
     this.ports = ports;
     this.listeners = [];
   }
@@ -1214,15 +1204,10 @@ var Controller = (function ControllerClosure() {
     saveScript: function(name) {
       ctlLog.log('saving script');
       var events = this.record.getEvents();
-      this.scriptServer.saveScript(name, events, params);
     },
     getScript: function(name) {
       ctlLog.log('getting script');
       var controller = this;
-      this.scriptServer.getScript(name, true,
-          function(scriptId, events) {
-            controller.setEvents(scriptId, events);
-          });
     },
     setEvents: function(scriptId, events) {
       this.record.setEvents(events);
@@ -1256,12 +1241,11 @@ var Controller = (function ControllerClosure() {
 
 /* Instantiate components */
 var ports = new PortManager();
-var scriptServer = new ScriptServer(params.server.url);
 
 var user = new User(user);
 var record = new Record(ports);
-var replay = new Replay(ports, scriptServer, user);
-var controller = new Controller(record, replay, scriptServer, ports);
+var replay = new Replay(ports, user);
+var controller = new Controller(record, replay, ports);
 
 /* Add event handlers */
 var bgLog = getLog('background');
