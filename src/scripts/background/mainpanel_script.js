@@ -48,15 +48,20 @@ function runHelper(remaining_program, row_so_far){
   }
 }
 
+var rd = {"remaining_program": null, "row_so_far": null}; //replay data
+
 function runDemonstration(remaining_program, row_so_far){
   var curr_program = remaining_program[0];
   var new_remaining_program = remaining_program.slice(1);
+  rd = {"remaining_program": new_remaining_program, "row_so_far": row_so_far};
   SimpleRecord.replay(curr_program["trace"], function(){replayCallback(new_remaining_program,row_so_far);});
 }
 
-function replayCallback(remaining_program){
-  //run the rest of the program for this row
-  runHelper(remaining_program,new_row_so_far);
+function replayCallback(replayObject){
+  console.log("replayObject", replayObject);
+  var new_row_so_far = rd["row_so_far"];
+  //TODO: look in replayObject to get the contents of the captured nodes, update the row so far
+  runHelper(rd["remaining_program"],new_row_so_far);
 }
 
 var lrd = {"current_items": [], "counter": 0, "total_counter": 0, "no_more_items": false, "type": null, "skip_next": true}; //list retrieval data
