@@ -149,7 +149,7 @@ var TimeoutStrategy = {
       enableRequest: true
     },
     logging: {
-      level: 1,
+      level: 5,
       enabled: ['ports', 'event', 'record', 'replay', 'script', 'background',
                 'content', 'synthesis', 'benchmark', 'target', 'controller',
                 'simpledebug']

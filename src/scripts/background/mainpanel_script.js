@@ -54,8 +54,12 @@ function runDemonstration(remaining_program, row_so_far){
   var curr_program = remaining_program[0];
   var new_remaining_program = remaining_program.slice(1);
   rd = {"remaining_program": new_remaining_program, "row_so_far": row_so_far};
-  SimpleRecord.replay(curr_program["trace"], replayCallback);
-  //TODO: ok, so really what we want to do is adapt it to whatever list item came before it.  so let's actually do that
+  var prev_list = row_so_far[row_so_far.length-1];
+  var prev_xpath = prev_list["xpath"];
+  var parameterized_trace = curr_program["parameterized_trace"];
+  parameterized_trace.useXpath("list_xpath", prev_xpath);
+  var standard_trace = parameterized_trace.standardTrace();
+  SimpleRecord.replay(standard_trace, replayCallback);
 }
 
 function replayCallback(replay_object){
@@ -233,12 +237,14 @@ function startRecording(){
 
 function doneRecording(){
   var trace = SimpleRecord.stopRecording();
-  current_demonstration["parameterized_trace"] = ParameterizedTrace(trace);
+  var filtered_trace = _.filter(trace, function(a){return a["type"]==="dom";});
+  current_demonstration["parameterized_trace"] = new ParameterizedTrace(filtered_trace);
   //get the xpath of the first list item of the most recent list
   //parameterize on that
-  
-  current_demonstration["parameterized_trace"].parameterizeXpath("list_xpath", xpath);
-  console.log("trace", current_demonstration["trace"]);
+  var recent_list = program[program.length - 2];
+  var first_xpath = recent_list["first_xpath"];
+  current_demonstration["parameterized_trace"].parameterizeXpath("list_xpath", first_xpath);
+  console.log("trace", filtered_trace);
 	//TODO: whatever has been captured during the demo, add to first row
 	current_demonstration = null;
 	programView();
