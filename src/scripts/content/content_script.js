@@ -474,7 +474,7 @@ function useSelector(selector){
     highlight(current_selector_nodes,"initial");
     current_selector_nodes = interpretListSelector(selector["dict"], selector["exclude_first"]);
     highlight(current_selector_nodes,"#9EE4FF");
-    list = _.map(current_selector_nodes,function(a){return $(a).text();});
+    list = _.map(current_selector_nodes,function(a){return {"text": $(a).text(), "xpath": nodeToXPath(a)};});
     return list;
 }
 

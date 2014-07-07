@@ -201,7 +201,7 @@ function arrayOfArraysToTable(arrayOfArrays){
     var $tr = $("<tr></tr>");
     for (var j= 0; j< array.length; j++){
       var $td = $("<td></td>");
-      $td.html(array[j]);
+      $td.html(array[j]["text"]);
       $tr.append($td);
     }
     $table.append($tr);
