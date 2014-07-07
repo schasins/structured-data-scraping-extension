@@ -24,3 +24,4 @@ var Ack = {
   PARTIAL: 'partial', /* only some of the commands replayed were successful */
 };
 
+var clone = JSON.parse(JSON.stringify(obj));

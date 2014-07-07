@@ -55,10 +55,12 @@ function runDemonstration(remaining_program, row_so_far){
   var new_remaining_program = remaining_program.slice(1);
   rd = {"remaining_program": new_remaining_program, "row_so_far": row_so_far};
   SimpleRecord.replay(curr_program["trace"], replayCallback);
+  //TODO: ok, so really what we want to do is adapt it to whatever list item came before it.  so let's actually do that
 }
 
-function replayCallback(replayObject){
-  console.log("replayObject", replayObject);
+function replayCallback(replay_object){
+  console.log("replayObject", replay_object);
+  var trace = replay_object["record"]["events"];
   var new_row_so_far = rd["row_so_far"];
   //TODO: look in replayObject to get the contents of the captured nodes, update the row so far
   runHelper(rd["remaining_program"],new_row_so_far);
