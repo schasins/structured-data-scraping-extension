@@ -28,15 +28,24 @@ var results = [];
  * Run the program
 **********************************************************************/
 
+var stack = [];
+
 function run(){
   results = [];
   runHelper(program,[]);
+  stack = [];
 }
 
 function runHelper(remaining_program, row_so_far){
+  console.log("runHelper");
+  console.log(row_so_far);
   if (remaining_program.length === 0){
     results.push(row_so_far);
     resultsView();
+    if (stack.length > 0){
+      var next_func = stack[stack.length - 1];
+      next_func();
+    }
     return;
   }
   var prog_item = remaining_program[0];
@@ -51,6 +60,8 @@ function runHelper(remaining_program, row_so_far){
 var rd = {"remaining_program": null, "row_so_far": null}; //replay data
 
 function runDemonstration(remaining_program, row_so_far){
+  console.log("runDemonstration");
+  console.log(row_so_far);
   var curr_program = remaining_program[0];
   var new_remaining_program = remaining_program.slice(1);
   rd = {"remaining_program": new_remaining_program, "row_so_far": row_so_far};
@@ -63,6 +74,8 @@ function runDemonstration(remaining_program, row_so_far){
 }
 
 function replayCallback(replay_object){
+  console.log("replayCallback");
+  console.log(rd["row_so_far"]);
   console.log("replayObject", replay_object);
   var trace = replay_object["record"]["events"];
   var new_row_so_far = rd["row_so_far"];
@@ -73,6 +86,8 @@ function replayCallback(replay_object){
 var lrd = {"current_items": [], "counter": 0, "total_counter": 0, "no_more_items": false, "type": null, "skip_next": true}; //list retrieval data
 
 function runList(remaining_program, row_so_far){
+  console.log("runList");
+  console.log(row_so_far);
   var curr_program = remaining_program[0];
   var new_remaining_program = remaining_program.slice(1);
   lrd = {"current_items": [], "counter": 0, "total_counter": 0, "no_more_items": false, "type": curr_program["next_button_data"]["type"], "skip_next": true};
@@ -80,6 +95,8 @@ function runList(remaining_program, row_so_far){
 }
 
 function runListLoop(curr_program,new_remaining_program,row_so_far){
+  console.log("runListLoop");
+  console.log(row_so_far);
   var item = runListGetNextItem(curr_program);
   if (item === null){
     //loop is done
@@ -95,8 +112,8 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
     new_row_so_far.push(item);
     //run the rest of the program for this row
     runHelper(new_remaining_program,new_row_so_far);
-    //go on to next row
-    runListLoop(curr_program,new_remaining_program,row_so_far);
+    //go on to next row once we finish the current row
+    stack.push(function(){runListLoop(curr_program,new_remaining_program,row_so_far);});
   }
 }
 
@@ -237,17 +254,21 @@ function startRecording(){
 
 function doneRecording(){
   var trace = SimpleRecord.stopRecording();
-  var filtered_trace = _.filter(trace, function(a){return a["type"]==="dom";});
-  current_demonstration["parameterized_trace"] = new ParameterizedTrace(filtered_trace);
+  trace = sanitizeTrace(trace);
+  current_demonstration["parameterized_trace"] = new ParameterizedTrace(trace);
   //get the xpath of the first list item of the most recent list
   //parameterize on that
   var recent_list = program[program.length - 2];
   var first_xpath = recent_list["first_xpath"];
   current_demonstration["parameterized_trace"].parameterizeXpath("list_xpath", first_xpath);
-  console.log("trace", filtered_trace);
+  console.log("trace", trace);
 	//TODO: whatever has been captured during the demo, add to first row
 	current_demonstration = null;
 	programView();
+}
+
+function sanitizeTrace(trace){
+  return _.filter(trace, function(obj){return obj.state !== "stopped";});
 }
 
 function cancelRecording(){
