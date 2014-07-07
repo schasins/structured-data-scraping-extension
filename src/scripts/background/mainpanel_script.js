@@ -216,7 +216,7 @@ function arrayOfArraysToTable(arrayOfArrays){
 var current_demonstration = null;
 
 function startProcessingDemonstration(){
-	current_demonstration = {"type": "demonstration", "trace": [], "first_row_elems": []};
+	current_demonstration = {"type": "demonstration", "first_row_elems": [], "parameterized_trace": []};
 	program.push(current_demonstration);
   
   var div = $("#result_table_div");
@@ -232,7 +232,12 @@ function startRecording(){
 }
 
 function doneRecording(){
-  current_demonstration["trace"] = SimpleRecord.stopRecording();
+  var trace = SimpleRecord.stopRecording();
+  current_demonstration["parameterized_trace"] = ParameterizedTrace(trace);
+  //get the xpath of the first list item of the most recent list
+  //parameterize on that
+  
+  current_demonstration["parameterized_trace"].parameterizeXpath("list_xpath", xpath);
   console.log("trace", current_demonstration["trace"]);
 	//TODO: whatever has been captured during the demo, add to first row
 	current_demonstration = null;
@@ -255,7 +260,7 @@ var current_list = null;
 /* Turn list processing on and off */
 
 function startProcessingList(){
-	current_list = {"type": "list", "selector": {}, "next_button_data": {}, "item_limit": 100000, "demo_list":[], "first_row_elems": []};
+	current_list = {"type": "list", "selector": {}, "next_button_data": {}, "item_limit": 100000, "demo_list":[], "first_row_elems": [], "first_xpath": ""};
 	program.push(current_list);
 	utilities.sendMessage("mainpanel", "content", "startProcessingList", "");
 	var div = $("#result_table_div");
@@ -291,8 +296,9 @@ function processSelectorAndListData(data){
   //store the new selector with the program's list object
   current_list["selector"] = data["selector"];
   //display the list so the user gets feedback
-  current_list["demo_list"] = data["list"];
-  var list = data["list"];
+  var list = _.pluck(data["list"],"text");
+  current_list["demo_list"] = list;
+  current_list["first_xpath"] = _.pluck(data["list"],"xpath")[0];
   var $listDiv = $(".list-active");
   var contentString = ""
   for (var j = 0; j<list.length; j++){

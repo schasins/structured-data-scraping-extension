@@ -239,7 +239,7 @@ function listClick(event){
   
   //highlight our new list and send it to the panel
   highlight(current_selector_nodes,"#9EE4FF");
-  var textList = _.map(current_selector_nodes,function(a){return $(a).text();});
+  var textList = _.map(current_selector_nodes,function(a){return {"text": $(a).text(), "xpath": nodeToXPath(a)};});
   var data = {"selector":current_selector,"list":textList};
   utilities.sendMessage("content", "mainpanel", "selectorAndListData", data);
   
