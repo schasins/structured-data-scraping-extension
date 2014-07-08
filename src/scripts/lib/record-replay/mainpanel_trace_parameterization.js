@@ -1,5 +1,7 @@
 function ParameterizedTrace(trace){
     var trace = trace;
+    
+    /* xpath parameterization */
 
     this.parameterizeXpath = function(parameter_name, original_value) {
         for (var i = 0; i< trace.length; i++){
@@ -24,6 +26,18 @@ function ParameterizedTrace(trace){
 			}
 		}
     }
+    
+    /* user-typed string parameterization */
+    
+    this.parameterizeTypedString = function(parameter_name, original_string){
+		
+	}
+	
+	this.useTypedString = function(parameter_name, string){
+		
+	}
+    
+    /* using current arguments, create a standard, replayable trace */
     
     this.standardTrace = function(){
 		var cloned_trace = clone(trace);

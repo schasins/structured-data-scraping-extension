@@ -258,10 +258,12 @@ function doneRecording(){
   current_demonstration["parameterized_trace"] = new ParameterizedTrace(trace);
   //get the xpath of the first list item of the most recent list
   //parameterize on that
-  var recent_list = program[program.length - 2];
-  var first_xpath = recent_list["first_xpath"];
-  current_demonstration["parameterized_trace"].parameterizeXpath("list_xpath", first_xpath);
-  console.log("trace", trace);
+  if (program.length >= 2){
+    var recent_list = program[program.length - 2];
+    var first_xpath = recent_list["first_xpath"];
+    current_demonstration["parameterized_trace"].parameterizeXpath("list_xpath", first_xpath);
+  }
+  console.log("trace", _.filter(trace, function(obj){return obj.type === "dom";}));
 	//TODO: whatever has been captured during the demo, add to first row
 	current_demonstration = null;
 	programView();
