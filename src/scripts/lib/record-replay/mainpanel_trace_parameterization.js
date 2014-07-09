@@ -30,6 +30,7 @@ function ParameterizedTrace(trace){
 	var data_carrier_type = "textInput";
     
     this.parameterizeTypedString = function(parameter_name, original_string){
+		console.log("parameterizeTypedString", trace);
 		var curr_string = "";
 		var char_indexes = [];
 		var started_char = false;
@@ -58,6 +59,7 @@ function ParameterizedTrace(trace){
 	}
 	
 	function processString(parameter_name, original_string, string, char_indexes){
+		console.log("processString", trace);
 		original_string = original_string.toLowerCase();
 		string = string.toLowerCase();
 		var orig_i = string.indexOf(original_string);
@@ -71,11 +73,12 @@ function ParameterizedTrace(trace){
 			var param_event = {"type": "string_parameterize", "parameter_name": parameter_name, "one_key_events": one_key_trace};
 			//now remove the unnecessary events, replace with our param event
 			var post_char_index = char_indexes[orig_i+original_string.length - 1] + one_key_trace.length;
-			trace = trace.slice(0,one_key_start_index)+[param_event]+trace.slice(post_char_index, trace.length);
+			trace = trace.slice(0,one_key_start_index).concat([param_event]).concat(trace.slice(post_char_index, trace.length));
 		}
 	}
 	
 	this.useTypedString = function(parameter_name, string){
+		console.log("useTypedString", trace);
 		for (var i=0; i< trace.length; i++){
 			var event = trace[i];
 			if (event["type"] === "string_parameterize" && event["parameter_name"] === parameter_name){
@@ -87,6 +90,12 @@ function ParameterizedTrace(trace){
     /* using current arguments, create a standard, replayable trace */
     
     this.standardTrace = function(){
+		console.log("standardTrace")
+		for (var i = 0; i<trace.length; i++){
+			console.log(trace[i].type);
+			console.log(trace[i]);
+		}
+		console.log("trace", _.filter(trace, function(obj){return obj["type"] === "dom";}));
 		var cloned_trace = clone(trace);
         for (var i = 0; i< cloned_trace.length; i++){
 			if (cloned_trace[i].type === "dom"){
@@ -99,11 +108,14 @@ function ParameterizedTrace(trace){
 				var new_events = [];
 				for (var j = 0; j< cloned_trace[i].value.length; j++){
 					var char = cloned_trace[i].value[j];
+					console.log("char", char);
+					console.log("one_key_events", cloned_trace[i].one_key_events);
 					for (var k = 0; k < cloned_trace[i].one_key_events.length; k++){
 						var next_event = clone(cloned_trace[i].one_key_events[k]);
 						if (next_event.type === data_carrier_type){
 							next_event.value.data.data = char;
 						}
+						console.log(next_event);
 						new_events.push(next_event);
 					}
 				}
