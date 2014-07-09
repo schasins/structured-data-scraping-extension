@@ -45,6 +45,7 @@ function runHelper(remaining_program, row_so_far){
     resultsView();
     if (stack.length > 0){
       var next_func = stack[stack.length - 1];
+      stack = stack.slice(0,stack.length-1);
       next_func();
     }
     return;
