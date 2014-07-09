@@ -39,7 +39,7 @@ function ParameterizedTrace(trace){
 			if (_.contains(["keydown", "keypress", "keyup", "input", "textInput"], event_data["type"])){
 				//starting a new character
 				if (event_data["type"] === first_event_type && !started_char){
-					char_indexes.push(i
+					char_indexes.push(i);
 					started_char = true;
 				}
 				else if (event_data["type"] === data_carrier_type){
@@ -109,7 +109,7 @@ function ParameterizedTrace(trace){
 						new_events.push(next_event);
 					}
 				}
-				cloned_trace = cloned_trace.slice(0,i)+new_events+cloned_trace.slice(i+1,cloned_trace.length);
+				cloned_trace = cloned_trace.slice(0,i).concat(new_events).concat(cloned_trace.slice(i+1,cloned_trace.length));
 			}
 		}
 		console.log("cloned_trace", _.filter(cloned_trace, function(obj){return obj["type"] === "dom";}));
