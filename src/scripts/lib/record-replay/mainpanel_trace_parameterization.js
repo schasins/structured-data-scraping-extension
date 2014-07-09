@@ -30,7 +30,6 @@ function ParameterizedTrace(trace){
 	var data_carrier_type = "textInput";
     
     this.parameterizeTypedString = function(parameter_name, original_string){
-		console.log("parameterizeTypedString", trace);
 		var curr_string = "";
 		var char_indexes = [];
 		var started_char = false;
@@ -40,7 +39,8 @@ function ParameterizedTrace(trace){
 			if (_.contains(["keydown", "keypress", "keyup", "input", "textInput"], event_data["type"])){
 				//starting a new character
 				if (event_data["type"] === first_event_type && !started_char){
-					char_indexes.push(i);
+					char_indexes.push(i
+					started_char = true;
 				}
 				else if (event_data["type"] === data_carrier_type){
 					curr_string += event_data.data;
@@ -48,7 +48,6 @@ function ParameterizedTrace(trace){
 				else if (event_data["type"] === last_event_type){
 					started_char = false;
 				}
-				console.log(curr_string);
 			}
 			else{
 				//no more entries into this string, have a non-key event
@@ -59,7 +58,8 @@ function ParameterizedTrace(trace){
 	}
 	
 	function processString(parameter_name, original_string, string, char_indexes){
-		console.log("processString", trace);
+		console.log(string);
+		console.log(char_indexes);
 		original_string = original_string.toLowerCase();
 		string = string.toLowerCase();
 		var orig_i = string.indexOf(original_string);
@@ -78,7 +78,6 @@ function ParameterizedTrace(trace){
 	}
 	
 	this.useTypedString = function(parameter_name, string){
-		console.log("useTypedString", trace);
 		for (var i=0; i< trace.length; i++){
 			var event = trace[i];
 			if (event["type"] === "string_parameterize" && event["parameter_name"] === parameter_name){
@@ -90,12 +89,6 @@ function ParameterizedTrace(trace){
     /* using current arguments, create a standard, replayable trace */
     
     this.standardTrace = function(){
-		console.log("standardTrace")
-		for (var i = 0; i<trace.length; i++){
-			console.log(trace[i].type);
-			console.log(trace[i]);
-		}
-		console.log("trace", _.filter(trace, function(obj){return obj["type"] === "dom";}));
 		var cloned_trace = clone(trace);
         for (var i = 0; i< cloned_trace.length; i++){
 			if (cloned_trace[i].type === "dom"){
@@ -108,14 +101,11 @@ function ParameterizedTrace(trace){
 				var new_events = [];
 				for (var j = 0; j< cloned_trace[i].value.length; j++){
 					var char = cloned_trace[i].value[j];
-					console.log("char", char);
-					console.log("one_key_events", cloned_trace[i].one_key_events);
 					for (var k = 0; k < cloned_trace[i].one_key_events.length; k++){
 						var next_event = clone(cloned_trace[i].one_key_events[k]);
 						if (next_event.type === data_carrier_type){
 							next_event.value.data.data = char;
 						}
-						console.log(next_event);
 						new_events.push(next_event);
 					}
 				}
