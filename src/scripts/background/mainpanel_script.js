@@ -23,6 +23,7 @@ $(setUp);
 
 var program = [];
 var results = [];
+var first_row = [];
 
 /**********************************************************************
  * Run the program
@@ -32,8 +33,8 @@ var stack = [];
 
 function run(){
   results = [];
-  runHelper(program,[]);
   stack = [];
+  runHelper(program,[]);
 }
 
 function runHelper(remaining_program, row_so_far){
@@ -68,7 +69,13 @@ function runDemonstration(remaining_program, row_so_far){
   var prev_list = row_so_far[row_so_far.length-1];
   var prev_xpath = prev_list["xpath"];
   var parameterized_trace = curr_program["parameterized_trace"];
+  //use current xpath as argument to parameterized trace
   parameterized_trace.useXpath("list_xpath", prev_xpath);
+  //use current row's strings as arguments to parameterized trace
+  for (var i = 0; i < row_so_far.length; i++){
+    var string = row_so_far[i]["text"];
+    parameterized_trace.useTypedString("str_"+i.toString(), string);
+  }
   var standard_trace = parameterized_trace.standardTrace();
   SimpleRecord.replay(standard_trace, replayCallback);
 }
@@ -110,10 +117,10 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
     //we have a real item
     var new_row_so_far = row_so_far.slice(0); //copy
     new_row_so_far.push(item);
-    //run the rest of the program for this row
-    runHelper(new_remaining_program,new_row_so_far);
     //go on to next row once we finish the current row
     stack.push(function(){runListLoop(curr_program,new_remaining_program,row_so_far);});
+    //run the rest of the program for this row
+    runHelper(new_remaining_program,new_row_so_far);
   }
 }
 
@@ -263,6 +270,19 @@ function doneRecording(){
     var first_xpath = recent_list["first_xpath"];
     current_demonstration["parameterized_trace"].parameterizeXpath("list_xpath", first_xpath);
   }
+  
+  var filtered_trace = _.filter(trace, function(obj){return obj["type"]==="dom";});
+  for (var i = 0; i<filtered_trace.length; i++){
+    console.log(filtered_trace[i].value.data.type);
+    console.log(filtered_trace[i].value.data);
+    console.log("****************************");
+  }
+  
+  //get strings from the first row so far, parameterize on that
+  for (var i = 0; i<first_row.length; i++){
+    var string = first_row[i];
+    current_demonstration["parameterized_trace"].parameterizeTypedString("str_"+i.toString(), string);
+  }
   console.log("trace", _.filter(trace, function(obj){return obj.type === "dom";}));
 	//TODO: whatever has been captured during the demo, add to first row
 	current_demonstration = null;
@@ -305,7 +325,7 @@ function startProcessingList(){
 
 function stopProcessingList(){
 	var demo_list = current_list["demo_list"];
-	if (demo_list.length > 0) {current_list["first_row_elems"] = [demo_list[0]];}
+	if (demo_list.length > 0) {current_list["first_row_elems"] = [demo_list[0]]; first_row.push(demo_list[0]);}
 	current_list = null;
 	utilities.sendMessage("mainpanel", "content", "stopProcessingList", "");
 	programView();
