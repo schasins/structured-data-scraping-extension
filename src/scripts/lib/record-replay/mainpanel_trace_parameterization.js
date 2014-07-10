@@ -120,7 +120,12 @@ function ParameterizedTrace(trace){
 				var new_event = cloned_trace[i].text_input_event;
 				new_event.value.data.data = cloned_trace[i].value;
 				new_event.value.meta.nodeSnapshot.prop.value = cloned_trace[i].value;
-				new_event.value.meta.deltas = [];
+				console.log(new_event.value.meta.deltas);
+				var deltas = new_event.value.meta.deltas;
+				for (var j = 0; j<deltas.length; j++){
+					var delta = deltas[j];
+					delta.changed.prop.value = cloned_trace[i].value;
+				}
 				prop_corrections[new_event.value.meta.nodeSnapshot.prop.xpath] = {"prop": "value", "value": cloned_trace[i].value};
 				cloned_trace = cloned_trace.slice(0,i).concat([new_event]).concat(cloned_trace.slice(i+1,cloned_trace.length));
 			}
@@ -129,9 +134,7 @@ function ParameterizedTrace(trace){
 		console.log("cloned_trace", filtered_trace);
 		for (var i = 0; i< filtered_trace.length; i++){
 			console.log(filtered_trace[i].value.data.type);
-			if (filtered_trace[i].value.meta.nodeSnapshot && filtered_trace[i].value.meta.nodeSnapshot.prop){
-				console.log(filtered_trace[i].value.meta.nodeSnapshot.prop);
-			}
+			console.log(filtered_trace[i].value.meta.deltas);
 			console.log("****************************");
 		}
 		return cloned_trace;
