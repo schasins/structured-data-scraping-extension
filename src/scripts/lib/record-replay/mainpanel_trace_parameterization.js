@@ -101,9 +101,13 @@ function ParameterizedTrace(trace){
 				var new_events = [];
 				for (var j = 0; j< cloned_trace[i].value.length; j++){
 					var char = cloned_trace[i].value[j];
+					console.log("**********************");
+					console.log("char", char);
 					for (var k = 0; k < cloned_trace[i].one_key_events.length; k++){
 						var next_event = clone(cloned_trace[i].one_key_events[k]);
-						if (next_event.type === data_carrier_type){
+						console.log("type", next_event.type);
+						if (next_event.value.data.type === data_carrier_type){
+							console.log("changing data to: "+char);
 							next_event.value.data.data = char;
 						}
 						new_events.push(next_event);
