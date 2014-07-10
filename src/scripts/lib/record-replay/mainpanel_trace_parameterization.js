@@ -66,13 +66,18 @@ function ParameterizedTrace(trace){
 		if (orig_i > -1){
 			//we've found the target string in the typed text, must param
 			var one_key_start_index = char_indexes[orig_i];
-			var one_key_end_index = char_indexes[orig_i+1];
-			//the trace events that we'll use to create events later
-			var one_key_trace = trace.slice(one_key_start_index, one_key_end_index);
+			var post_char_index = char_indexes[orig_i+original_string.length - 1] + char_indexes[orig_i+1] - char_indexes[orig_i];
+			var text_input_event = null;
+			for (var i = one_key_start_index; i++ ; i < post_char_index){
+				var event = trace[i];
+				if (event.value.data.type === "textInput"){
+					text_input_event = event;
+					break;
+				}
+			}
 			//now make our param event
-			var param_event = {"type": "string_parameterize", "parameter_name": parameter_name, "one_key_events": one_key_trace};
+			var param_event = {"type": "string_parameterize", "parameter_name": parameter_name, "text_input_event": text_input_event};
 			//now remove the unnecessary events, replace with our param event
-			var post_char_index = char_indexes[orig_i+original_string.length - 1] + one_key_trace.length;
 			trace = trace.slice(0,one_key_start_index).concat([param_event]).concat(trace.slice(post_char_index, trace.length));
 		}
 	}
@@ -98,22 +103,9 @@ function ParameterizedTrace(trace){
 				}
 			}
 			else if (cloned_trace[i].type === "string_parameterize"){
-				var new_events = [];
-				for (var j = 0; j< cloned_trace[i].value.length; j++){
-					var char = cloned_trace[i].value[j];
-					console.log("**********************");
-					console.log("char", char);
-					for (var k = 0; k < cloned_trace[i].one_key_events.length; k++){
-						var next_event = clone(cloned_trace[i].one_key_events[k]);
-						console.log("type", next_event.type);
-						if (next_event.value.data.type === data_carrier_type){
-							console.log("changing data to: "+char);
-							next_event.value.data.data = char;
-						}
-						new_events.push(next_event);
-					}
-				}
-				cloned_trace = cloned_trace.slice(0,i).concat(new_events).concat(cloned_trace.slice(i+1,cloned_trace.length));
+				var new_event = cloned_trace[i].text_input_event;
+				new_event.value.data.data = cloned_trace[i].value;
+				cloned_trace = cloned_trace.slice(0,i).concat([new_event]).concat(cloned_trace.slice(i+1,cloned_trace.length));
 			}
 		}
 		console.log("cloned_trace", _.filter(cloned_trace, function(obj){return obj["type"] === "dom";}));
