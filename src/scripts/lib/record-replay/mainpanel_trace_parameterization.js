@@ -70,7 +70,7 @@ function ParameterizedTrace(trace){
 			var text_input_event = null;
 			for (var i = one_key_start_index; i++ ; i < post_char_index){
 				var event = trace[i];
-				if (event.value.data.type === "textInput"){
+				if (event.type === "dom" && event.value.data.type === "textInput"){
 					text_input_event = event;
 					break;
 				}
@@ -95,8 +95,22 @@ function ParameterizedTrace(trace){
     
     this.standardTrace = function(){
 		var cloned_trace = clone(trace);
+		var prop_corrections = {};
         for (var i = 0; i< cloned_trace.length; i++){
 			if (cloned_trace[i].type === "dom"){
+				//do any prop corrections we might need, as when we've recorded a value but what to enforce a diff
+				if (cloned_trace[i].value.meta.nodeSnapshot && cloned_trace[i].value.meta.nodeSnapshot.prop){
+					var xpath = cloned_trace[i].value.meta.nodeSnapshot.prop.xpath;
+					for (var correction_xpath in prop_corrections){
+						if (xpath === correction_xpath){
+							var prop = prop_corrections[correction_xpath]["prop"];
+							var val = prop_corrections[correction_xpath]["value"];
+							cloned_trace[i].value.meta.nodeSnapshot.prop[prop] = val;
+							console.log(cloned_trace[i].value.data.type+": replacing "+prop+" with "+val);
+						}
+					}
+				}
+				//correct xpath if it's a parameterized xpath
 				var xpath = cloned_trace[i].value.data.target.xpath;
 				if (xpath["name"]){
 					cloned_trace[i].value.data.target.xpath = xpath["value"];
@@ -105,10 +119,21 @@ function ParameterizedTrace(trace){
 			else if (cloned_trace[i].type === "string_parameterize"){
 				var new_event = cloned_trace[i].text_input_event;
 				new_event.value.data.data = cloned_trace[i].value;
+				new_event.value.meta.nodeSnapshot.prop.value = cloned_trace[i].value;
+				new_event.value.meta.deltas = [];
+				prop_corrections[new_event.value.meta.nodeSnapshot.prop.xpath] = {"prop": "value", "value": cloned_trace[i].value};
 				cloned_trace = cloned_trace.slice(0,i).concat([new_event]).concat(cloned_trace.slice(i+1,cloned_trace.length));
 			}
 		}
-		console.log("cloned_trace", _.filter(cloned_trace, function(obj){return obj["type"] === "dom";}));
+		var filtered_trace = _.filter(cloned_trace, function(obj){return obj["type"] === "dom";});
+		console.log("cloned_trace", filtered_trace);
+		for (var i = 0; i< filtered_trace.length; i++){
+			console.log(filtered_trace[i].value.data.type);
+			if (filtered_trace[i].value.meta.nodeSnapshot && filtered_trace[i].value.meta.nodeSnapshot.prop){
+				console.log(filtered_trace[i].value.meta.nodeSnapshot.prop);
+			}
+			console.log("****************************");
+		}
 		return cloned_trace;
 	}
 }
