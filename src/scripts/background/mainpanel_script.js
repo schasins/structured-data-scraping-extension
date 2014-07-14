@@ -198,11 +198,11 @@ function moreItems(data){
 
 function programView(){
   var div = $("#result_table_div")
-  div.html("");
-  var first_row_str = "<div id='first_row'>First Row:<br>";
+  div.html("<h4>Process</h4>");
+  var first_row_str = "<div id='first_row'><h4>First Row</h4>";
   for (var i = 0; i<program.length; i++){
     var item = program[i];
-    var program_item_str = "<div><div class='prog_"+item["type"]+"'>"+item["type"]+"</div>";
+    var program_item_str = "<div class='clear'><div class='prog_"+item["type"]+"'>"+item["type"]+"</div>";
     for (var j = 0; j<item["first_row_elems"].length; j++){
       var elem = item["first_row_elems"][j];
       elem_str = "<div class='first_row_elem'>"+elem+"</div>";
