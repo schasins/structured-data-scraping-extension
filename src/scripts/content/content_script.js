@@ -17,9 +17,10 @@
 
 var processing_list = false;
 var processing_next_button = false;
+var processing_capture = false;
 
 function off(){
-	return !(processing_list || processing_next_button);
+	return !(processing_list || processing_next_button || processing_capture);
 }
 
 function setUp(){
@@ -36,6 +37,8 @@ function setUp(){
   utilities.listenForMessage("mainpanel", "content", "startProcessingNextButton", startProcessingNextButton);
   utilities.listenForMessage("mainpanel", "content", "getMoreItems", getMoreItems);
   utilities.listenForMessage("mainpanel", "content", "getNextPage", getNextPage);
+  utilities.listenForMessage("mainpanel", "content", "startProcessingCapture", startProcessingCapture);
+  utilities.listenForMessage("mainpanel", "content", "stopProcessingCapture", stopProcessingCapture);
   
   //messages sent by this component
   //utilities.sendMessage("content", "mainpanel", "selectorAndListData", data);
@@ -570,6 +573,26 @@ function findNextButton(next_button_data){
     }
   }
   return button;
+}
+
+
+/**********************************************************************
+ * Handle captures, our term for scraping a given node's data
+**********************************************************************/
+
+$(function(){
+  ["capture"] = function(node){return $(node).text();}
+}); //run once page loaded, because else runs before r+r content script
+
+function startProcessingCapture(){
+  processing_capture = true; //controls color guide
+  //TODO: decide whether actions during capture should have their usual effects
+  additional_recording_handlers_on["capture"] = true;
+}
+
+function stopProcessingCapture(){
+  processing_capture = false; //controls color guide
+  additional_recording_handlers_on["capture"] = true;
 }
 
 /**********************************************************************

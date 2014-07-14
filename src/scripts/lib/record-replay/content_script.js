@@ -17,6 +17,8 @@ var pageEventId = 0; /* counter to give each event on page a unique id */
 var lastRecordEvent; /* last event recorded */
 var lastRecordSnapshot; /* snapshot (before and after) for last event */
 var curRecordSnapshot; /* snapshot (before and after) the current event */
+var additional_recording_handlers = {}; // so that other tools using an interface to r+r can put data in event messages
+var additional_recording_handlers_on = {};
 
 /* Replay variables */
 var lastReplayEvent; /* last event replayed */
@@ -160,7 +162,8 @@ function recordEvent(eventData) {
     frame: {},
     data: {},
     timing: {},
-    meta: {}
+    meta: {},
+    additional: {}
   };
 
   /* deal with all the replay mess that we can't do in simulate */
@@ -206,6 +209,15 @@ function recordEvent(eventData) {
   /* handle any event recording the addons need */
   for (var i = 0, ii = addonPostRecord.length; i < ii; ++i) {
     addonPostRecord[i](eventData, eventMessage);
+  }
+  
+  console.log(additional_recording_handlers);
+  console.log(additional_recording_handlers_on);
+  for (var key in additional_recording_handlers_on){
+	  if (!additional_recording_handlers_on[key]){return;}
+	  var handler = additional_recording_handlers[key];
+	  var ret_val = handler(target);
+	  eventMessage["additional"][key] = ret_val;
   }
 
   /* save the event record */
@@ -414,6 +426,14 @@ function simulate(events, startIndex) {
     if (params.replay.highlightTarget) {
       highlightNode(target, 100);
     }
+    
+	//additional handlers should run in replay only if ran in record
+	for (var key in additional_recording_handlers_on){
+		additional_recording_handlers_on[key] = false;
+	}
+    for (var key in eventRecord.additional){
+		additional_recording_handlers_on[key] = true;
+	}
 
     /* Create an event object to mimick the recorded event */
     var eventType = getEventType(eventName);

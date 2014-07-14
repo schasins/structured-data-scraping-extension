@@ -11,6 +11,8 @@ function setUp(){
   //utilities.sendMessage("mainpanel", "content", "startProcessingNextButton", "");
   //utilities.sendMessage("mainpanel", "content", "getMoreItems", data);
   //utilities.sendMessage("mainpanel", "content", "getNextPage", data);
+  //utilities.sendMessage("mainpanel", "content", "startProcessingCapture", "");
+  //utilities.sendMessage("mainpanel", "content", "stopProcessingCapture", "");
   
   //handle user interactions with the mainpanel
   $("#start_list").click(startProcessingList);
@@ -254,6 +256,8 @@ function startProcessingDemonstration(){
 	div.find(".start_recording").click(startRecording);
 	div.find(".done_recording").click(doneRecording);
 	div.find(".cancel_recording").click(cancelRecording);
+	div.find(".start_capturing").click(startProcessingCapture);
+	div.find(".stop_capturing").click(stopProcessingCapture);
 }
 
 function startRecording(){
@@ -292,6 +296,14 @@ function cancelRecording(){
 	program = _.without(program, current_demonstration);
 	current_demonstration = null;
 	programView();
+}
+
+function startProcessingCapture(){
+  utilities.sendMessage("mainpanel", "content", "startProcessingCapture", "");
+}
+
+function stopProcessingCapture(){
+  utilities.sendMessage("mainpanel", "content", "stopProcessingCapture", "");
 }
 
 /**********************************************************************
