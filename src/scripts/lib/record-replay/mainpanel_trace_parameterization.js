@@ -58,15 +58,15 @@ function ParameterizedTrace(trace){
 	}
 	
 	function processString(parameter_name, original_string, string, char_indexes){
-		console.log(string);
-		console.log(char_indexes);
+		var original_string_initial_case = original_string;
 		original_string = original_string.toLowerCase();
 		string = string.toLowerCase();
 		var orig_i = string.indexOf(original_string);
 		if (orig_i > -1){
 			//we've found the target string in the typed text, must param
 			var one_key_start_index = char_indexes[orig_i];
-			var post_char_index = char_indexes[orig_i+original_string.length - 1] + char_indexes[orig_i+1] - char_indexes[orig_i];
+			var post_char_index = char_indexes[orig_i+original_string.length - 1]
+				+ char_indexes[orig_i+1] - char_indexes[orig_i];
 			var text_input_event = null;
 			for (var i = one_key_start_index; i++ ; i < post_char_index){
 				var event = trace[i];
@@ -76,9 +76,15 @@ function ParameterizedTrace(trace){
 				}
 			}
 			//now make our param event
-			var param_event = {"type": "string_parameterize", "parameter_name": parameter_name, "text_input_event": text_input_event};
-			//now remove the unnecessary events, replace with our param event
-			trace = trace.slice(0,one_key_start_index).concat([param_event]).concat(trace.slice(post_char_index, trace.length));
+			var param_event = {"type": "string_parameterize", 
+				"parameter_name": parameter_name, 
+				"text_input_event": text_input_event, 
+				"orig_value": original_string_initial_case,
+				"value": ""};
+			//now remove the unnecessary events, replace with param event
+			trace = trace.slice(0,one_key_start_index)
+				.concat([param_event])
+				.concat(trace.slice(post_char_index, trace.length));
 		}
 	}
 	
@@ -93,6 +99,13 @@ function ParameterizedTrace(trace){
     
     /* using current arguments, create a standard, replayable trace */
     
+    function deltaReplace(deltas, prop_to_change, orig_value, replace_value){
+		for (var j = 0; j<deltas.length; j++){
+			var delta = deltas[j];
+			delta.changed.prop[prop_to_change] = delta.changed.prop[prop_to_change].replace(orig_value, replace_value);
+		}
+	}
+    
     this.standardTrace = function(){
 		var cloned_trace = clone(trace);
 		var prop_corrections = {};
@@ -103,10 +116,9 @@ function ParameterizedTrace(trace){
 					var xpath = cloned_trace[i].value.meta.nodeSnapshot.prop.xpath;
 					for (var correction_xpath in prop_corrections){
 						if (xpath === correction_xpath){
-							var prop = prop_corrections[correction_xpath]["prop"];
-							var val = prop_corrections[correction_xpath]["value"];
-							cloned_trace[i].value.meta.nodeSnapshot.prop[prop] = val;
-							console.log(cloned_trace[i].value.data.type+": replacing "+prop+" with "+val);
+							var d = prop_corrections[correction_xpath];
+							console.log("delta replace with: ", cloned_trace[i].value.data.type, d.prop, d.orig_value, d.value);
+							deltaReplace(cloned_trace[i].value.meta.deltas, d.prop, d.orig_value, d.value);		
 						}
 					}
 				}
@@ -119,23 +131,15 @@ function ParameterizedTrace(trace){
 			else if (cloned_trace[i].type === "string_parameterize"){
 				var new_event = cloned_trace[i].text_input_event;
 				new_event.value.data.data = cloned_trace[i].value;
-				new_event.value.meta.nodeSnapshot.prop.value = cloned_trace[i].value;
-				console.log(new_event.value.meta.deltas);
-				var deltas = new_event.value.meta.deltas;
-				for (var j = 0; j<deltas.length; j++){
-					var delta = deltas[j];
-					delta.changed.prop.value = cloned_trace[i].value;
-				}
-				prop_corrections[new_event.value.meta.nodeSnapshot.prop.xpath] = {"prop": "value", "value": cloned_trace[i].value};
-				cloned_trace = cloned_trace.slice(0,i).concat([new_event]).concat(cloned_trace.slice(i+1,cloned_trace.length));
+				deltaReplace(new_event.value.meta.deltas, "value", cloned_trace[i].orig_value, cloned_trace[i].value);
+				prop_corrections[new_event.value.meta.nodeSnapshot.prop.xpath] = 
+					{"prop": "value", 
+					"orig_value": cloned_trace[i].orig_value, 
+					"value": cloned_trace[i].value};
+				cloned_trace = cloned_trace.slice(0,i)
+					.concat([new_event])
+					.concat(cloned_trace.slice(i+1,cloned_trace.length));
 			}
-		}
-		var filtered_trace = _.filter(cloned_trace, function(obj){return obj["type"] === "dom";});
-		console.log("cloned_trace", filtered_trace);
-		for (var i = 0; i< filtered_trace.length; i++){
-			console.log(filtered_trace[i].value.data.type);
-			console.log(filtered_trace[i].value.meta.deltas);
-			console.log("****************************");
 		}
 		return cloned_trace;
 	}
