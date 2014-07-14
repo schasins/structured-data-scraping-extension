@@ -581,7 +581,7 @@ function findNextButton(next_button_data){
 **********************************************************************/
 
 $(function(){
-  ["capture"] = function(node){return $(node).text();}
+  additional_recording_handlers["capture"] = function(node){return {"text": $(node).text(), "xpath": nodeToXPath(node)};}
 }); //run once page loaded, because else runs before r+r content script
 
 function startProcessingCapture(){

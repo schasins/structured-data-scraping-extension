@@ -281,8 +281,24 @@ function doneRecording(){
     var string = first_row[i];
     current_demonstration["parameterized_trace"].parameterizeTypedString("str_"+i.toString(), string);
   }
+  
+  //search the trace for any captured data, add that to the first row
+  var captured_nodes = {};
+  for (var i = 0; i < trace.length; i++){
+    var event = trace[i];
+    if (event.type !== "dom"){continue;}
+    console.log(event);
+    var additional = event.value.additional;
+    if (additional["capture"]){
+      var c = additional["capture"];
+      //only want one text per node, even though click on same node, for instance, has 3 events
+      captured_nodes[c.xpath] = c.text;
+    }
+  }
+  var texts = _.map(captured_nodes, function(val){return val;});
+  current_demonstration["first_row_elems"] = texts;
+  
   console.log("trace", _.filter(trace, function(obj){return obj.type === "dom";}));
-	//TODO: whatever has been captured during the demo, add to first row
 	current_demonstration = null;
 	programView();
 }
