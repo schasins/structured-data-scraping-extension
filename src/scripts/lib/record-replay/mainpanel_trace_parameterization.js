@@ -117,7 +117,6 @@ function ParameterizedTrace(trace){
 					for (var correction_xpath in prop_corrections){
 						if (xpath === correction_xpath){
 							var d = prop_corrections[correction_xpath];
-							console.log("delta replace with: ", cloned_trace[i].value.data.type, d.prop, d.orig_value, d.value);
 							deltaReplace(cloned_trace[i].value.meta.deltas, d.prop, d.orig_value, d.value);		
 						}
 					}

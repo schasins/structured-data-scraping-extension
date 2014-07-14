@@ -38,8 +38,8 @@ function run(){
 }
 
 function runHelper(remaining_program, row_so_far){
-  console.log("runHelper");
-  console.log(row_so_far);
+  //console.log("runHelper");
+  //console.log(row_so_far);
   if (remaining_program.length === 0){
     results.push(row_so_far);
     resultsView();
@@ -62,8 +62,8 @@ function runHelper(remaining_program, row_so_far){
 var rd = {"remaining_program": null, "row_so_far": null}; //replay data
 
 function runDemonstration(remaining_program, row_so_far){
-  console.log("runDemonstration");
-  console.log(row_so_far);
+  //console.log("runDemonstration");
+  //console.log(row_so_far);
   var curr_program = remaining_program[0];
   var new_remaining_program = remaining_program.slice(1);
   rd = {"remaining_program": new_remaining_program, "row_so_far": row_so_far};
@@ -82,8 +82,8 @@ function runDemonstration(remaining_program, row_so_far){
 }
 
 function replayCallback(replay_object){
-  console.log("replayCallback");
-  console.log(rd["row_so_far"]);
+  //console.log("replayCallback");
+  //console.log(rd["row_so_far"]);
   console.log("replayObject", replay_object);
   var trace = replay_object["record"]["events"];
   var new_row_so_far = rd["row_so_far"];
@@ -94,8 +94,8 @@ function replayCallback(replay_object){
 var lrd = {"current_items": [], "counter": 0, "total_counter": 0, "no_more_items": false, "type": null, "skip_next": true}; //list retrieval data
 
 function runList(remaining_program, row_so_far){
-  console.log("runList");
-  console.log(row_so_far);
+  //console.log("runList");
+  //console.log(row_so_far);
   var curr_program = remaining_program[0];
   var new_remaining_program = remaining_program.slice(1);
   lrd = {"current_items": [], "counter": 0, "total_counter": 0, "no_more_items": false, "type": curr_program["next_button_data"]["type"], "skip_next": true};
@@ -103,8 +103,8 @@ function runList(remaining_program, row_so_far){
 }
 
 function runListLoop(curr_program,new_remaining_program,row_so_far){
-  console.log("runListLoop");
-  console.log(row_so_far);
+  //console.log("runListLoop");
+  //console.log(row_so_far);
   var item = runListGetNextItem(curr_program);
   if (item === null){
     //loop is done
@@ -270,13 +270,6 @@ function doneRecording(){
     var recent_list = program[program.length - 2];
     var first_xpath = recent_list["first_xpath"];
     current_demonstration["parameterized_trace"].parameterizeXpath("list_xpath", first_xpath);
-  }
-  
-  var filtered_trace = _.filter(trace, function(obj){return obj["type"]==="dom";});
-  for (var i = 0; i<filtered_trace.length; i++){
-    console.log(filtered_trace[i].value.data.type);
-    console.log(filtered_trace[i].value.data);
-    console.log("****************************");
   }
   
   //get strings from the first row so far, parameterize on that
