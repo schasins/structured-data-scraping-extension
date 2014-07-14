@@ -211,8 +211,6 @@ function recordEvent(eventData) {
     addonPostRecord[i](eventData, eventMessage);
   }
   
-  console.log(additional_recording_handlers);
-  console.log(additional_recording_handlers_on);
   for (var key in additional_recording_handlers_on){
 	  if (!additional_recording_handlers_on[key]){return;}
 	  var handler = additional_recording_handlers[key];

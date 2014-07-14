@@ -89,8 +89,10 @@ function replayCallback(replay_object){
   console.log("replayObject", replay_object);
   var trace = replay_object["record"]["events"];
   var new_row_so_far = rd["row_so_far"];
-  //TODO: look in replayObject to get the contents of the captured nodes, update the row so far
-  runHelper(rd["remaining_program"],new_row_so_far);
+  var trace = replay_object.events;
+  var texts = capturesFromTrace(trace);
+  var items = _.map(texts, function(a){return {"text": a};});
+  runHelper(rd["remaining_program"],new_row_so_far.concat(items));
 }
 
 var lrd = {"current_items": [], "counter": 0, "total_counter": 0, "no_more_items": false, "type": null, "skip_next": true}; //list retrieval data
@@ -283,11 +285,19 @@ function doneRecording(){
   }
   
   //search the trace for any captured data, add that to the first row
-  var captured_nodes = {};
+  var texts = capturesFromTrace(trace);
+  current_demonstration["first_row_elems"] = texts;
+  
+  console.log("trace", _.filter(trace, function(obj){return obj.type === "dom";}));
+	current_demonstration = null;
+	programView();
+}
+
+function capturesFromTrace(trace){
+    var captured_nodes = {};
   for (var i = 0; i < trace.length; i++){
     var event = trace[i];
     if (event.type !== "dom"){continue;}
-    console.log(event);
     var additional = event.value.additional;
     if (additional["capture"]){
       var c = additional["capture"];
@@ -296,11 +306,7 @@ function doneRecording(){
     }
   }
   var texts = _.map(captured_nodes, function(val){return val;});
-  current_demonstration["first_row_elems"] = texts;
-  
-  console.log("trace", _.filter(trace, function(obj){return obj.type === "dom";}));
-	current_demonstration = null;
-	programView();
+  return texts;
 }
 
 function sanitizeTrace(trace){
