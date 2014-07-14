@@ -1,0 +1,73 @@
+body{
+	font-family: Trebuchet MS,Tahoma,Verdana,Arial,sans-serif;
+	font-size: 12px;
+	padding: 0px;
+	margin: 0px;
+	width: 100%;
+}
+table, tr, td {
+	border: 1px solid #F2F2F2;
+	font-family: Trebuchet MS,Tahoma,Verdana,Arial,sans-serif;
+	font-size: 11px;
+}
+table {
+	border-collapse: collapse;
+}
+h4 {
+	margin: 0px;
+	padding: 0px;
+}
+.no-close .ui-dialog-titlebar-close {
+	display: none;
+}
+.prog_list {
+	background-color: #FFA03B;
+}
+.prog_demonstration {
+	background-color: #3BD4FF;
+}
+.first_row_elem{
+	background-color: #F2F2F2;
+	float: left;
+	padding: 2px;
+	margin: 2px;
+}
+#first_row{
+	clear:both;
+	padding-top: 10px;
+}
+#run{
+	width: 100%;
+}
+.top_button{
+	width: 49%;
+}
+.left {
+	float: left;
+}
+.right {
+	float: right;
+}
+.clear {
+	clear: both;
+}
+#top_buttons{
+	width: 98%;
+}
+#top_buttons_wrapper{
+	padding: 1%;
+	background-color: #FCFCFC;
+	overflow: auto;
+	width: 100%;
+	-webkit-box-shadow: 0 0 5px #888;
+	box-shadow: 0 0 5px #888;
+	margin-bottom: 5px;
+}
+#result_table_div{
+	padding: 10px;
+}
+.list{
+	background-color: #FAFAFA;
+	padding: 5px;
+	border: 1px solid #D6D6D6;
+}
