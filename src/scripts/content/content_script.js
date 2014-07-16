@@ -28,6 +28,8 @@ function setUp(){
   //user event handling
   document.addEventListener('mouseover', outline, true);
   document.addEventListener('mouseout', unoutline, true);
+  document.addEventListener('keydown', outlineAdjustDown, true);
+  document.addEventListener('keyup', outlineAdjustUp, true);
   document.addEventListener('click', listClick, true);
   document.addEventListener('click', nextButtonClick, true);
   
@@ -55,6 +57,7 @@ $(setUp);
 
 var stored_background_colors = {};
 var stored_outlines = {};
+var current_target = null;
 
 function targetFromEvent(event){
   var $target = $(event.target);
@@ -68,8 +71,12 @@ function targetFromEvent(event){
 
 function outline(event){
   if (off()){return;}
-  
-  var $target = $(targetFromEvent(event));
+  outlineTarget(targetFromEvent(event));
+}
+
+function outlineTarget(target){
+  current_target = target;
+  $target = $(target);
   stored_background_colors[$target.html()] = $target.css('background-color');
   stored_outlines[$target.html()] = $target.css('outline');
   $target.css('background-color', '#FFA245');
@@ -78,10 +85,29 @@ function outline(event){
 
 function unoutline(event){
   if (off()){return;}
-  
-  var $target = $(targetFromEvent(event));
+  unoutlineTarget(targetFromEvent(event));
+}
+
+function unoutlineTarget(target){
+  $target = $(target);
   $target.css('background-color', stored_background_colors[$target.html()]);
   $target.css('outline', stored_outlines[$target.html()]);
+}
+
+function outlineAdjustDown(event){
+  if (off()){return;}
+  if (event.keyCode === 17){
+    unoutlineTarget(current_target);
+    outlineTarget($(current_target).closest("tr").get(0));
+  }
+}
+
+function outlineAdjustUp(event){
+  if (off()){return;}
+  if (event.keyCode === 17){
+    unoutlineTarget(current_target);
+    current_target = null;
+  }
 }
 
 /**********************************************************************
