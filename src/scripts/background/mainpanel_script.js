@@ -289,6 +289,7 @@ function doneRecording(){
   //get strings from the first row so far, parameterize on that
   for (var i = 0; i<first_row.length; i++){
     var string = first_row[i];
+    console.log(string);
     current_demonstration["parameterized_trace"].parameterizeTypedString("str_"+i.toString(), string);
   }
   
@@ -374,7 +375,7 @@ function startProcessingList(){
 
 function stopProcessingList(){
 	var demo_list = current_list["demo_list"];
-	if (demo_list.length > 0) {current_list["first_row_elems"] = [demo_list[0]]; first_row.push(demo_list[0]);}
+	if (demo_list.length > 0) {current_list["first_row_elems"] = demo_list[0]; first_row = first_row.concat(demo_list[0]);}
 	current_list = null;
 	utilities.sendMessage("mainpanel", "content", "stopProcessingList", "");
 	programView();
@@ -394,8 +395,9 @@ function processSelectorAndListData(data){
   //store the new selector with the program's list object
   current_list["selector"] = data["selector"];
   //display the list so the user gets feedback
-  var list = _.pluck(data["list"],"text");
-  current_list["demo_list"] = list;
+  //recall that data["list"] is a list of xpath, text pairs, where
+  //the text item is a list of node texts
+  current_list["demo_list"] = _.map(data["list"], function(a){return _.pluck(a,"text");});
   current_list["first_xpath"] = _.pluck(data["list"],"xpath")[0];
   var $listDiv = $(".list-active");
   var contentString = arrayOfArraysToTable(data["list"]);
