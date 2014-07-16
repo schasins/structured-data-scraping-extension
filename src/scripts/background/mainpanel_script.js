@@ -122,7 +122,7 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
   else {
     //we have a real item
     var new_row_so_far = row_so_far.slice(0); //copy
-    new_row_so_far.push(item);
+    new_row_so_far = new_row_so_far.concat(item);
     //go on to next row once we finish the current row
     stack.push(function(){runListLoop(curr_program,new_remaining_program,row_so_far);});
     //run the rest of the program for this row
@@ -229,13 +229,20 @@ function resultsView(){
 }
 
 function arrayOfArraysToTable(arrayOfArrays){
+  //input may either be an array of arrays with text items
+  //or array of arrays with dict items, where each dict has text key
   var $table = $("<table></table>");
   for (var i = 0; i< arrayOfArrays.length; i++){
     var array = arrayOfArrays[i];
     var $tr = $("<tr></tr>");
     for (var j= 0; j< array.length; j++){
       var $td = $("<td></td>");
-      $td.html(array[j]["text"]);
+      if (array[j]["text"]){
+        $td.html(_.escape(array[j]["text"]));
+      }
+      else {
+        $td.html(_.escape(array[j]));
+      }
       $tr.append($td);
     }
     $table.append($tr);
@@ -391,10 +398,7 @@ function processSelectorAndListData(data){
   current_list["demo_list"] = list;
   current_list["first_xpath"] = _.pluck(data["list"],"xpath")[0];
   var $listDiv = $(".list-active");
-  var contentString = ""
-  for (var j = 0; j<list.length; j++){
-    contentString+="<div>"+_.escape(list[j])+"</div>";
-  }
+  var contentString = arrayOfArraysToTable(data["list"]);
   $listDiv.html(contentString);
 }
 

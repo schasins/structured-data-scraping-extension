@@ -254,13 +254,28 @@ function listClick(event){
   
   //highlight our new list and send it to the panel
   highlight(current_selector_nodes,"#9EE4FF");
-  var textList = _.map(current_selector_nodes,function(a){return {"text": $(a).text(), "xpath": nodeToXPath(a)};});
+  var textList = _.map(current_selector_nodes, nodeToRowResults);
   var data = {"selector":current_selector,"list":textList};
   utilities.sendMessage("content", "mainpanel", "selectorAndListData", data);
   
   //log the new stuff
   console.log(current_selector);
   console.log(current_selector_nodes);
+}
+
+function nodeToTexts(node){
+  var $node = $(node);
+  if ($node.prop("tagName").toLowerCase() === "tr"){
+    return _.map($node.children(), function(a){return $(a).text();});
+  }
+  return [$node.text()];
+}
+
+function nodeToRowResults(node){
+  var xpath = nodeToXPath(node);
+  var texts = nodeToTexts(node);
+  var results = _.map(texts, function(a){return {"text": a, "xpath": xpath}});
+  return results;
 }
 
 function findSibling(node){
@@ -489,7 +504,7 @@ function useSelector(selector){
     highlight(current_selector_nodes,"initial");
     current_selector_nodes = interpretListSelector(selector["dict"], selector["exclude_first"]);
     highlight(current_selector_nodes,"#9EE4FF");
-    list = _.map(current_selector_nodes,function(a){return {"text": $(a).text(), "xpath": nodeToXPath(a)};});
+    list = _.map(current_selector_nodes, nodeToRowResults);
     return list;
 }
 
@@ -594,7 +609,7 @@ function findNextButton(next_button_data){
 
 $(function(){
   additional_recording_handlers["capture"] = function(node){
-    var data = {"text": $(node).text(), "xpath": nodeToXPath(node)};
+    var data = {"text": nodeToTexts(node), "xpath": nodeToXPath(node)};
     utilities.sendMessage("content", "mainpanel", "capturedData", data);
     return data;
   }
