@@ -56,10 +56,20 @@ $(setUp);
 var stored_background_colors = {};
 var stored_outlines = {};
 
+function targetFromEvent(event){
+  var $target = $(event.target);
+  //if CTRL was pressed, we want not the table cell but the whole row
+  if (event.ctrlKey==1){
+    $ps = $target.closest("tr");
+    if ($ps){ $target = $ps;}
+  }
+  return $target.get(0);
+}
+
 function outline(event){
   if (off()){return;}
   
-  var $target = $(event.target);
+  var $target = $(targetFromEvent(event));
   stored_background_colors[$target.html()] = $target.css('background-color');
   stored_outlines[$target.html()] = $target.css('outline');
   $target.css('background-color', '#FFA245');
@@ -69,7 +79,7 @@ function outline(event){
 function unoutline(event){
   if (off()){return;}
   
-  var $target = $(event.target);
+  var $target = $(targetFromEvent(event));
   $target.css('background-color', stored_background_colors[$target.html()]);
   $target.css('outline', stored_outlines[$target.html()]);
 }
@@ -210,8 +220,9 @@ function listClick(event){
   
   event.stopPropagation();
   event.preventDefault();
+
+  var target = targetFromEvent(event);
   
-  var target = event.target;
   //decide whether it's a positive or negative example based on whether
   //it's in the old list
   if (_.contains(current_selector_nodes,target)){
