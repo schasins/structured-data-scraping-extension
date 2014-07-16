@@ -43,7 +43,8 @@ function setUp(){
   //messages sent by this component
   //utilities.sendMessage("content", "mainpanel", "selectorAndListData", data);
   //utilities.sendMessage("content", "mainpanel", "nextButtonData", data);
-  //utilities.sendMessage("content", "mainpanel", "moreItems", moreItems);
+  //utilities.sendMessage("content", "mainpanel", "moreItems", moreItems;
+  //utilities.sendMessage("content", "mainpanel", "capturedData", data);
 }
 
 $(setUp);
@@ -581,7 +582,11 @@ function findNextButton(next_button_data){
 **********************************************************************/
 
 $(function(){
-  additional_recording_handlers["capture"] = function(node){return {"text": $(node).text(), "xpath": nodeToXPath(node)};}
+  additional_recording_handlers["capture"] = function(node){
+    var data = {"text": $(node).text(), "xpath": nodeToXPath(node)};
+    utilities.sendMessage("content", "mainpanel", "capturedData", data);
+    return data;
+  }
 }); //run once page loaded, because else runs before r+r content script
 
 function startProcessingCapture(){

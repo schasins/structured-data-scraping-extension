@@ -4,6 +4,7 @@ function setUp(){
   utilities.listenForMessage("content", "mainpanel", "selectorAndListData", processSelectorAndListData);
   utilities.listenForMessage("content", "mainpanel", "nextButtonData", processNextButtonData);
   utilities.listenForMessage("content", "mainpanel", "moreItems", moreItems);
+  utilities.listenForMessage("content", "mainpanel", "capturedData", processCapturedData);
   
   //messages sent by this component
   //utilities.sendMessage("mainpanel", "content", "startProcessingList", "");
@@ -294,7 +295,7 @@ function doneRecording(){
 }
 
 function capturesFromTrace(trace){
-    var captured_nodes = {};
+  var captured_nodes = {};
   for (var i = 0; i < trace.length; i++){
     var event = trace[i];
     if (event.type !== "dom"){continue;}
@@ -320,12 +321,25 @@ function cancelRecording(){
 	programView();
 }
 
+var captured = {};
+
 function startProcessingCapture(){
+  captured = {};
   utilities.sendMessage("mainpanel", "content", "startProcessingCapture", "");
 }
 
 function stopProcessingCapture(){
   utilities.sendMessage("mainpanel", "content", "stopProcessingCapture", "");
+}
+
+function processCapturedData(data){
+  captured[data.xpath] = data.text;
+  var texts = _.map(captured, function(val){return val;});
+  $div = $("#captured_texts");
+  $div.html("");
+  for (var key in captured){
+    $div.append($('<div class="first_row_elem">'+captured[key]+'</div>'));
+  }
 }
 
 /**********************************************************************
