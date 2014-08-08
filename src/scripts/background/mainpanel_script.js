@@ -70,30 +70,35 @@ function runDemonstration(remaining_program, row_so_far){
   var curr_program = remaining_program[0];
   var new_remaining_program = remaining_program.slice(1);
   rd = {"remaining_program": new_remaining_program, "row_so_far": row_so_far};
-  var prev_list = row_so_far[row_so_far.length-1];
-  var prev_xpath = prev_list["xpath"];
   var parameterized_trace = curr_program["parameterized_trace"];
-  //use current xpath as argument to parameterized trace
-  parameterized_trace.useXpath("list_xpath", prev_xpath);
+  
+  //use current row's xpaths as arguments to parameterized trace
+  for (var i = 0; i < row_so_far.length; i++){
+    var xpath = row_so_far[i]["xpath"];
+    parameterized_trace.useXpath("xpath_"+i.toString(), xpath);
+  }
+  
   //use current row's strings as arguments to parameterized trace
   for (var i = 0; i < row_so_far.length; i++){
     var string = row_so_far[i]["text"];
     parameterized_trace.useTypedString("str_"+i.toString(), string);
   }
+  //TODO tabs: must adjust trace so that list-related items (and anything else
+  //with the same unique frame id happens on our list page)
   var standard_trace = parameterized_trace.standardTrace();
-  SimpleRecord.replay(standard_trace, replayCallback);
+  SimpleRecord.replay(standard_trace, {}, replayCallback);
 }
 
 function replayCallback(replay_object){
   //console.log("replayCallback");
   //console.log(rd["row_so_far"]);
-  console.log("replayObject", replay_object);
+  //console.log("replayObject", replay_object);
   var trace = replay_object["record"]["events"];
   var new_row_so_far = rd["row_so_far"];
   var trace = replay_object.events;
   var texts = capturesFromTrace(trace);
-  var items = _.map(texts, function(a){return {"text": a};});
-  runHelper(rd["remaining_program"],new_row_so_far.concat(items));
+  //var items = _.map(texts, function(a){return {"text": a};});
+  runHelper(rd["remaining_program"],new_row_so_far.concat(texts));
 }
 
 var lrd = {"current_items": [], "counter": 0, "total_counter": 0, "no_more_items": false, "type": null, "skip_next": true}; //list retrieval data
@@ -161,9 +166,14 @@ function runListGetNextItem(program_list){
 	      "next_button_data": program_list["next_button_data"],
 	      "item_limit": program_list["item_limit"]};
   if (data["next_button_data"]["type"] === "next_button" && !lrd["skip_next"]){
+    //TODO tabs: send this to the right tab (not frame), not just any old tab
+    //if this list is the first program component, tab should always be same
+    //otherwise we should be getting it from the previous demo, because
+    //when first recorded, we should have figured out which demo events overlapped with the list page's tab
     utilities.sendMessage("mainpanel", "content", "getNextPage", data);
   }
   lrd["skip_next"] = false;
+  //TODO tabs: send this to the right tab (not frame), not just any old tab
   utilities.sendMessage("mainpanel", "content", "getMoreItems", data);
   waiting_for_items = true;
   return wait;
@@ -278,24 +288,26 @@ function doneRecording(){
   var trace = SimpleRecord.stopRecording();
   trace = sanitizeTrace(trace);
   current_demonstration["parameterized_trace"] = new ParameterizedTrace(trace);
-  //get the xpath of the first list item of the most recent list
-  //parameterize on that
-  if (program.length >= 2){
-    var recent_list = program[program.length - 2];
-    var first_xpath = recent_list["first_xpath"];
-    current_demonstration["parameterized_trace"].parameterizeXpath("list_xpath", first_xpath);
+  
+  //TODO tabs: also get the recent_list's tab or frame ids, parameterize on that
+  //should probably be tab, since frame may change as next button is clicked
+  
+  //get xpaths from the first row so far, parameterize on that
+  for (var i = 0; i<first_row.length; i++){
+    var xpath = first_row[i]["xpath"];
+    current_demonstration["parameterized_trace"].parameterizeXpath("xpath_"+i.toString(), xpath);
   }
   
   //get strings from the first row so far, parameterize on that
   for (var i = 0; i<first_row.length; i++){
-    var string = first_row[i];
-    console.log(string);
+    var string = first_row[i]["text"];
     current_demonstration["parameterized_trace"].parameterizeTypedString("str_"+i.toString(), string);
   }
   
   //search the trace for any captured data, add that to the first row
-  var texts = capturesFromTrace(trace);
-  current_demonstration["first_row_elems"] = texts;
+  var items = capturesFromTrace(trace);
+  current_demonstration["first_row_elems"] = _.pluck(items, "text");
+  first_row.concat(items);
   
   console.log("trace", _.filter(trace, function(obj){return obj.type === "dom";}));
 	current_demonstration = null;
@@ -307,15 +319,15 @@ function capturesFromTrace(trace){
   for (var i = 0; i < trace.length; i++){
     var event = trace[i];
     if (event.type !== "dom"){continue;}
-    var additional = event.value.additional;
+    var additional = event.additional;
     if (additional["capture"]){
       var c = additional["capture"];
       //only want one text per node, even though click on same node, for instance, has 3 events
       captured_nodes[c.xpath] = c.text;
     }
   }
-  var texts = _.map(captured_nodes, function(val){return val;});
-  return texts;
+  var items = _.map(captured_nodes, function(val,key){return {"text": val, "xpath": key};});
+  return items;
 }
 
 function sanitizeTrace(trace){
@@ -359,7 +371,7 @@ var current_list = null;
 /* Turn list processing on and off */
 
 function startProcessingList(){
-	current_list = {"type": "list", "selector": {}, "next_button_data": {}, "item_limit": 100000, "demo_list":[], "first_row_elems": [], "first_xpath": ""};
+	current_list = {"type": "list", "selector": {}, "next_button_data": {}, "item_limit": 100000, "demo_list":[], "first_row_elems": [], "first_xpaths": []};
 	program.push(current_list);
 	utilities.sendMessage("mainpanel", "content", "startProcessingList", "");
 	var div = $("#result_table_div");
@@ -374,8 +386,7 @@ function startProcessingList(){
 }
 
 function stopProcessingList(){
-	var demo_list = current_list["demo_list"];
-	if (demo_list.length > 0) {current_list["first_row_elems"] = demo_list[0]; first_row = first_row.concat(demo_list[0]);}
+	if (current_list["first_items"]){first_row = first_row.concat(current_list["first_items"]);}
 	current_list = null;
 	utilities.sendMessage("mainpanel", "content", "stopProcessingList", "");
 	programView();
@@ -398,7 +409,13 @@ function processSelectorAndListData(data){
   //recall that data["list"] is a list of xpath, text pairs, where
   //the text item is a list of node texts
   current_list["demo_list"] = _.map(data["list"], function(a){return _.pluck(a,"text");});
-  current_list["first_xpath"] = _.pluck(data["list"],"xpath")[0];
+  current_list["first_xpaths"] = _.pluck(data["list"][0],"xpath");
+  if (data["list"].length > 0) {current_list["first_row_elems"] = current_list["demo_list"][0]; current_list["first_items"] = data["list"][0];}
+  //TODO tabs: also need to put the list's tab or frame data into the current_list
+  //we'll use it to parameterize any following demos
+  //but will also use it to figure out where to send list messages (see below)
+  //need to look at the previous demo's events, see if any of them happened on the same tab as this
+  //if it did, need to parameterize on that somehow
   var $listDiv = $(".list-active");
   var contentString = arrayOfArraysToTable(data["list"]);
   $listDiv.html(contentString);

@@ -4,11 +4,13 @@ function ParameterizedTrace(trace){
     /* xpath parameterization */
 
     this.parameterizeXpath = function(parameter_name, original_value) {
+		original_value = original_value.toUpperCase();
         for (var i = 0; i< trace.length; i++){
 			if (trace[i].type !== "dom"){ continue;}
-			var xpath = trace[i].value.data.target.xpath;
+			var xpath = trace[i].target.xpath.toUpperCase();
 			if (xpath === original_value){
-				trace[i].value.data.target.xpath = {"name": parameter_name, "value": null};
+				console.log("putting a hole in for an xpath", original_value);
+				trace[i].target.xpath = {"name": parameter_name, "value": null};
 			}
 		}
     }
@@ -16,9 +18,10 @@ function ParameterizedTrace(trace){
     this.useXpath = function(parameter_name, value) {
         for (var i = 0; i< trace.length; i++){
 			if (trace[i].type !== "dom"){ continue;}
-			var xpath = trace[i].value.data.target.xpath;
+			var xpath = trace[i].target.xpath;
 			if (xpath["name"] === parameter_name){
-				trace[i].value.data.target.xpath = {"name": parameter_name, "value": value};
+				console.log("use xpath", value);
+				trace[i].target.xpath = {"name": parameter_name, "value": value};
 			}
 		}
     }
@@ -35,7 +38,7 @@ function ParameterizedTrace(trace){
 		var started_char = false;
         for (var i = 0; i< trace.length; i++){
 			if (trace[i].type !== "dom"){ continue;} //ok to drop these from script, so ok to skip
-			var event_data = trace[i].value.data;
+			var event_data = trace[i].data;
 			if (_.contains(["keydown", "keypress", "keyup", "input", "textInput"], event_data["type"])){
 				//starting a new character
 				if (event_data["type"] === first_event_type && !started_char){
@@ -70,7 +73,7 @@ function ParameterizedTrace(trace){
 			var text_input_event = null;
 			for (var i = one_key_start_index; i++ ; i < post_char_index){
 				var event = trace[i];
-				if (event.type === "dom" && event.value.data.type === "textInput"){
+				if (event.type === "dom" && event.data.type === "textInput"){
 					text_input_event = event;
 					break;
 				}
@@ -96,6 +99,11 @@ function ParameterizedTrace(trace){
 			}
 		}
 	}
+	
+	//TODO tabs: create a parameterize on frame or tab.  not yet sure which
+	//we'll be using it for cases where a demonstration does something on a list page
+	//could be the first list page, in which case tab always the same, but could
+	//also be a nested list page, in which case tab will change
     
     /* using current arguments, create a standard, replayable trace */
     
@@ -112,26 +120,27 @@ function ParameterizedTrace(trace){
         for (var i = 0; i< cloned_trace.length; i++){
 			if (cloned_trace[i].type === "dom"){
 				//do any prop corrections we might need, as when we've recorded a value but what to enforce a diff
-				if (cloned_trace[i].value.meta.nodeSnapshot && cloned_trace[i].value.meta.nodeSnapshot.prop){
-					var xpath = cloned_trace[i].value.meta.nodeSnapshot.prop.xpath;
+				if (cloned_trace[i].meta.nodeSnapshot && cloned_trace[i].meta.nodeSnapshot.prop){
+					var xpath = cloned_trace[i].meta.nodeSnapshot.prop.xpath;
 					for (var correction_xpath in prop_corrections){
 						if (xpath === correction_xpath){
 							var d = prop_corrections[correction_xpath];
-							deltaReplace(cloned_trace[i].value.meta.deltas, d.prop, d.orig_value, d.value);		
+							deltaReplace(cloned_trace[i].meta.deltas, d.prop, d.orig_value, d.value);		
 						}
 					}
 				}
 				//correct xpath if it's a parameterized xpath
-				var xpath = cloned_trace[i].value.data.target.xpath;
+				var xpath = cloned_trace[i].target.xpath;
 				if (xpath["name"]){
-					cloned_trace[i].value.data.target.xpath = xpath["value"];
+					console.log("Correcting xpath to ", xpath["value"]);
+					cloned_trace[i].target.xpath = xpath["value"];
 				}
 			}
 			else if (cloned_trace[i].type === "string_parameterize"){
 				var new_event = cloned_trace[i].text_input_event;
-				new_event.value.data.data = cloned_trace[i].value;
-				deltaReplace(new_event.value.meta.deltas, "value", cloned_trace[i].orig_value, cloned_trace[i].value);
-				prop_corrections[new_event.value.meta.nodeSnapshot.prop.xpath] = 
+				new_event.data.data = cloned_trace[i].value;
+				deltaReplace(new_event.meta.deltas, "value", cloned_trace[i].orig_value, cloned_trace[i].value);
+				prop_corrections[new_event.meta.nodeSnapshot.prop.xpath] = 
 					{"prop": "value", 
 					"orig_value": cloned_trace[i].orig_value, 
 					"value": cloned_trace[i].value};

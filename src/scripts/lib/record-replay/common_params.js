@@ -150,9 +150,9 @@ var TimeoutStrategy = {
     },
     logging: {
       level: 5,
-      enabled: ['ports', 'event', 'record', 'replay', 'script', 'background',
-                'content', 'synthesis', 'benchmark', 'target', 'controller',
-                'simpledebug']
+      enabled: 'all',
+      print: true,
+      saved: true
     },
     compensation: {
       enabled: true,
@@ -170,7 +170,7 @@ var TimeoutStrategy = {
     },
     replay: {
       openNewTab: true,
-      saveReplay: true,
+      saveReplay: false,
       cancelUnknownEvents: false,
       skipCascadingEvents: true,
       eventTimeout: null,

@@ -1,14 +1,5 @@
 /**********************************************************************
  * Author: S. Chasins
- * A program that demonstrates the use of my tiny domain selector
- * language, and also the use of my algorithm for synthesizing
- * domain selector programs from a small number of demonstrations, 
- * where a demonstration is an indication that a given node belongs
- * in or out of the target domain.
- * A user's click is taken as an indication that an unhighlighted
- * node belongs in the domain, or that a highlighted node does not
- * belong in the domain.  The program synthesizes a new, updated
- * selector program after each click.
 **********************************************************************/
 
 /**********************************************************************
@@ -637,6 +628,7 @@ $(function(){
   additional_recording_handlers["capture"] = function(node){
     var data = {"text": nodeToTexts(node), "xpath": nodeToXPath(node)};
     utilities.sendMessage("content", "mainpanel", "capturedData", data);
+    console.log("capture", data);
     return data;
   }
 }); //run once page loaded, because else runs before r+r content script

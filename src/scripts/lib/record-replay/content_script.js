@@ -9,7 +9,7 @@
  * add-on doesn't pollute the scope. */
 
 var recording = RecordState.STOPPED;
-var id = 'setme';
+var frameId = 'setme';
 var port; /* port variable to send msgs to content script */
 
 /* Record variables */
@@ -89,8 +89,7 @@ function getMatchingEvent(eventData) {
     return null;
 
   var eventObject = simulatedEvents[simulatedEventsIdx];
-  var eventRecord = eventObject.value;
-  if (eventRecord.data.type == eventData.type) {
+  if (eventObject.data.type == eventData.type) {
     return eventObject;
   }
 
@@ -123,7 +122,7 @@ function recordEvent(eventData) {
    * picked up by the recorder */
   if (params.replay.cancelUnknownEvents && 
       recording == RecordState.REPLAYING && !dispatchingEvent) {
-    recordLog.debug('[' + id + '] cancel unknown event during replay:',
+    recordLog.debug('[' + frameId + '] cancel unknown event during replay:',
          type, dispatchType, eventData);
     eventData.stopImmediatePropagation();
     eventData.preventDefault();
@@ -132,7 +131,7 @@ function recordEvent(eventData) {
 
   if (params.record.cancelUnrecordedEvents &&
       recording == RecordState.RECORDING && !shouldRecord) {
-    recordLog.debug('[' + id + '] cancel unrecorded event:', type, 
+    recordLog.debug('[' + frameId + '] cancel unrecorded event:', type, 
         dispatchType, eventData);
     eventData.stopImmediatePropagation();
     eventData.preventDefault();
@@ -150,7 +149,7 @@ function recordEvent(eventData) {
   }
 
   /* continue recording the event */
-  recordLog.debug('[' + id + '] process event:', type, dispatchType,
+  recordLog.debug('[' + frameId + '] process event:', type, dispatchType,
       eventData);
   sendAlert('Recorded event: ' + type);
 
@@ -167,19 +166,27 @@ function recordEvent(eventData) {
   };
 
   /* deal with all the replay mess that we can't do in simulate */
-  if (recording == RecordState.REPLAYING)
+  if (recording == RecordState.REPLAYING){
+	console.log("eventMessage", eventMessage);
     replayUpdateDeltas(eventData, eventMessage);
+  }
 
   /* deal with snapshotting the DOM, calculating the deltas, and sending
    * updates */
   updateDeltas(target);
 
-  eventMessage.data.target = saveTargetInfo(target, recording);
+  eventMessage.target = saveTargetInfo(target, recording);
+  var relatedTarget = eventData.relatedTarget;
+  if (relatedTarget) {
+    eventMessage.relatedTarget = saveTargetInfo(relatedTarget, recording);
+  }
+
   eventMessage.frame.URL = document.URL;
   eventMessage.meta.dispatchType = dispatchType;
   eventMessage.meta.nodeName = nodeName;
   eventMessage.meta.pageEventId = pageEventId++;
   eventMessage.meta.recordState = recording;
+  eventMessage.type = 'dom';
 
   var data = eventMessage.data;
   /* record all properties of the event object */
@@ -191,11 +198,9 @@ function recordEvent(eventData) {
         if (t == 'number' || t == 'boolean' || t == 'string' || 
             t == 'undefined') {
           data[prop] = value;
-        } else if (prop == 'relatedTarget' && isElement(value)) {
-          data[prop] = saveTargetInfo(value, recording);
         }
       } catch (err) {
-        recordLog.error('[' + id + '] error recording property:', prop, err);
+        recordLog.error('[' + frameId + '] error recording property:', prop, err);
       }
     }
   /* only record the default event properties */
@@ -211,6 +216,7 @@ function recordEvent(eventData) {
     addonPostRecord[i](eventData, eventMessage);
   }
   
+  
   for (var key in additional_recording_handlers_on){
 	  if (!additional_recording_handlers_on[key]){return;}
 	  var handler = additional_recording_handlers[key];
@@ -219,8 +225,8 @@ function recordEvent(eventData) {
   }
 
   /* save the event record */
-  recordLog.debug('[' + id + '] saving event message:', eventMessage);
-  port.postMessage({type: 'dom', value: eventMessage, state: recording});
+  recordLog.debug('[' + frameId + '] saving event message:', eventMessage);
+  port.postMessage({type: 'event', value: eventMessage, state: recording});
   lastRecordEvent = eventMessage;
 
   /* check to see if this event is part of a cascade of events. we do this 
@@ -367,19 +373,16 @@ function simulate(events, startIndex) {
   simulatedEventsIdx = 0;
 
   for (var i = startIndex, ii = events.length; i < ii; ++i) {
-    var e = events[i];
+    var eventRecord = events[i];
 
     /* Should not replay non-dom events here */
-    if (e.type != 'dom') {
+    if (eventRecord.type != 'dom') {
       replayLog.error('Simulating unknown event type');
       throw 'Unknown event type';
     }
 
-    var eventRecord = e.value;
     var eventData = eventRecord.data;
     var eventName = eventData.type;
-
-    var id = eventRecord.meta.id;
 
     /* this event was detected by the recorder, so lets skip it */
     if (params.replay.cascadeCheck && events[i].replayed)
@@ -401,7 +404,7 @@ function simulate(events, startIndex) {
           break;
       }
     } else {
-      var targetInfo = eventData.target;
+      var targetInfo = eventRecord.target;
       var xpath = targetInfo.xpath;
   
       /* find the target */
@@ -424,7 +427,7 @@ function simulate(events, startIndex) {
     if (params.replay.highlightTarget) {
       highlightNode(target, 100);
     }
-    
+        
 	//additional handlers should run in replay only if ran in record
 	for (var key in additional_recording_handlers_on){
 		additional_recording_handlers_on[key] = false;
@@ -450,7 +453,7 @@ function simulate(events, startIndex) {
     } else if (eventType == 'FocusEvent') {
       var relatedTarget = null;
 
-      if (eventData.relatedTarget)
+      if (eventRecord.relatedTarget)
         relatedTarget = getTarget(eventData.relatedTarget);
 
       oEvent.initUIEvent(eventName, options.bubbles, options.cancelable,
@@ -459,8 +462,8 @@ function simulate(events, startIndex) {
     } else if (eventType == 'MouseEvent') {
       var relatedTarget = null;
 
-      if (eventData.relatedTarget)
-        relatedTarget = getTarget(eventData.relatedTarget);
+      if (eventRecord.relatedTarget)
+        relatedTarget = getTarget(eventRecord.relatedTarget);
 
       oEvent.initMouseEvent(eventName, options.bubbles, options.cancelable,
           document.defaultView, options.detail, options.screenX,
@@ -495,7 +498,7 @@ function simulate(events, startIndex) {
       oEvent.cascadingOrigin = eventData.cascadingOrigin;
     }
 
-    replayLog.debug('[' + id + '] dispatchEvent', eventName, options, target,
+    replayLog.debug('[' + frameId + '] dispatchEvent', eventName, options, target,
                     oEvent);
 
     /* send the update to the injected script so that the event can be 
@@ -530,7 +533,7 @@ function simulate(events, startIndex) {
   /* let the background page know that all the events were replayed (its
    * possible some/all events were skipped) */
   port.postMessage({type: 'ack', value: {type: Ack.SUCCESS}, state: recording});
-  replayLog.debug('sent ack: ', id);
+  replayLog.debug('sent ack: ', frameId);
 }
 
 /* Stop the next execution of simulate */
@@ -686,10 +689,10 @@ function updateParams(newParams) {
     var oldListOfEvents = oldEvents[eventType];
     for (var e in listOfEvents) {
       if (listOfEvents[e] && !oldListOfEvents[e]) {
-        log.log('[' + id + '] extension listening for ' + e);
+        log.log('[' + frameId + '] extension listening for ' + e);
         document.addEventListener(e, recordEvent, true);
       } else if (!listOfEvents[e] && oldListOfEvents[e]) {
-        log.log('[' + id + '] extension stopped listening for ' + e);
+        log.log('[' + frameId + '] extension stopped listening for ' + e);
         document.removeEventListener(e, recordEvent, true);
       }
     }
@@ -720,7 +723,7 @@ var handlers = {
 function handleMessage(request) {
   var type = request.type;
 
-  log.log('[' + id + '] handle message:', request, type);
+  log.log('[' + frameId + '] handle message:', request, type);
 
   var callback = handlers[type];
   if (callback) {
@@ -754,8 +757,9 @@ value.URL = document.URL;
 
 /* Add all the other handlers */
 chrome.runtime.sendMessage({type: 'getId', value: value}, function(resp) {
-  id = resp.value;
-  port = new Port(id);
+  log.log(resp);
+  frameId = resp.value;
+  port = new Port(frameId);
   port.addListener(handleMessage);
 
   // see if recording is going on
