@@ -167,7 +167,6 @@ function recordEvent(eventData) {
 
   /* deal with all the replay mess that we can't do in simulate */
   if (recording == RecordState.REPLAYING){
-	console.log("eventMessage", eventMessage);
     replayUpdateDeltas(eventData, eventMessage);
   }
 
@@ -256,7 +255,6 @@ function replayUpdateDeltas(eventData, eventMessage) {
     incrementMatchedEventIndex();
       
     replayEvent.replayed = true;
-    replayEvent = replayEvent.value;
 
     eventMessage.meta.recordId = replayEvent.meta.id;
     var target = eventData.target;
