@@ -271,7 +271,7 @@ function listClick(event){
   
   //highlight our new list and send it to the panel
   highlight(current_selector_nodes,"#9EE4FF");
-  var textList = _.map(current_selector_nodes, nodeToRowResults);
+  var textList = _.map(current_selector_nodes, nodeToTextsAndXpaths);
   var data = {"selector":current_selector,"list":textList};
   utilities.sendMessage("content", "mainpanel", "selectorAndListData", data);
   
@@ -280,19 +280,25 @@ function listClick(event){
   console.log(current_selector_nodes);
 }
 
+function nodeToText(node){
+	return $(node).text();
+}
+
 function nodeToTexts(node){
   var $node = $(node);
   if ($node.prop("tagName").toLowerCase() === "tr"){
-    return _.map($node.children(), function(a){return $(a).text();});
+    return _.map($node.children(), nodeToText);
   }
-  return [$node.text()];
+  return [nodeToText(node)];
 }
 
-function nodeToRowResults(node){
-  var xpath = nodeToXPath(node);
-  var texts = nodeToTexts(node);
-  var results = _.map(texts, function(a){return {"text": a, "xpath": xpath}});
-  return results;
+function nodeToTextsAndXpaths(node){
+  var $node = $(node);
+  if ($node.prop("tagName").toLowerCase() === "tr"){
+    return _.map($node.children(), function(a){
+		return {"text": $(a).text(), "xpath": nodeToXPath(a)};});
+  }
+  return [{"text": $(node).text(), "xpath": nodeToXPath(node)}];
 }
 
 function findSibling(node){
@@ -521,7 +527,7 @@ function useSelector(selector){
     highlight(current_selector_nodes,"initial");
     current_selector_nodes = interpretListSelector(selector["dict"], selector["exclude_first"]);
     highlight(current_selector_nodes,"#9EE4FF");
-    list = _.map(current_selector_nodes, nodeToRowResults);
+    list = _.map(current_selector_nodes, nodeToTextsAndXpaths);
     return list;
 }
 
@@ -626,7 +632,7 @@ function findNextButton(next_button_data){
 
 $(function(){
   additional_recording_handlers["capture"] = function(node){
-    var data = {"text": nodeToTexts(node), "xpath": nodeToXPath(node)};
+    var data = {"text": nodeToText(node), "xpath": nodeToXPath(node)};
     utilities.sendMessage("content", "mainpanel", "capturedData", data);
     console.log("capture", data);
     return data;

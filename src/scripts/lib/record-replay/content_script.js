@@ -215,9 +215,9 @@ function recordEvent(eventData) {
     addonPostRecord[i](eventData, eventMessage);
   }
   
-  
   for (var key in additional_recording_handlers_on){
-	  if (!additional_recording_handlers_on[key]){return;}
+	  if (!additional_recording_handlers_on[key]){continue;}
+	  console.log("record", key);
 	  var handler = additional_recording_handlers[key];
 	  var ret_val = handler(target);
 	  eventMessage["additional"][key] = ret_val;
@@ -428,9 +428,11 @@ function simulate(events, startIndex) {
         
 	//additional handlers should run in replay only if ran in record
 	for (var key in additional_recording_handlers_on){
+		console.log(key, "off");
 		additional_recording_handlers_on[key] = false;
 	}
     for (var key in eventRecord.additional){
+		console.log(key, "on");
 		additional_recording_handlers_on[key] = true;
 	}
 

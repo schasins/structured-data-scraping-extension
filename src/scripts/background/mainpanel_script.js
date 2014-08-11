@@ -95,8 +95,8 @@ function replayCallback(replay_object){
   //console.log("replayObject", replay_object);
   var trace = replay_object["record"]["events"];
   var new_row_so_far = rd["row_so_far"];
-  var trace = replay_object.events;
-  var texts = capturesFromTrace(trace);
+  var replay_trace = replay_object.record.events;
+  var texts = capturesFromTrace(replay_trace);
   //var items = _.map(texts, function(a){return {"text": a};});
   runHelper(rd["remaining_program"],new_row_so_far.concat(texts));
 }
