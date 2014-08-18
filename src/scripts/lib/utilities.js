@@ -5,6 +5,11 @@ utilities.listenForMessage = function(from, to, subject,fn){
   if (to === "background" || to === "mainpanel"){
     chrome.runtime.onMessage.addListener(function(msg, sender) {
       console.log(msg);
+      var frame_id = getFrameId();
+      if (msg.frame_id && frame_id != msg.frame_id){
+        console.log("Msg for frame with id "+msg.frame_id+", but this frame has id "+frame_id+".");
+        return;
+      }
       if (msg.from && (msg.from === from)
 		      && msg.subject && (msg.subject === subject)) {
 	      fn(msg.content);
@@ -22,10 +27,10 @@ utilities.listenForMessage = function(from, to, subject,fn){
   }
 }
 
-utilities.sendMessage = function(from, to, subject, content){
+utilities.sendMessage = function(from, to, subject, content, frame_id){
   console.log("Sending message: ");
   if ((from ==="background" || from ==="mainpanel") && to === "content"){
-	var msg = {from: from, subject: subject, content: content};
+	var msg = {from: from, subject: subject, content: content, frame_id: frame_id};
 	console.log(msg);
     chrome.tabs.query({windowType: "normal"}, function(tabs){
 	  console.log("Sending to "+tabs.length+" tabs.");
