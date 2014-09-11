@@ -32,7 +32,7 @@ utilities.listenForMessage = function(from, to, subject,fn){
 }
 
 utilities.sendMessage = function(from, to, subject, content, frame_id, include_id){
-  if (typeof include_id === 'undefined') {include_id = true;}
+  if (frame_id && typeof include_id === 'undefined') {include_id = true;}
   console.log("Sending message: ");
   if ((from ==="background" || from ==="mainpanel") && to === "content"){
 	var msg = {from: from, subject: subject, content: content, frame_id: frame_id, include_id: include_id};

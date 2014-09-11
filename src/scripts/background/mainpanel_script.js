@@ -403,6 +403,9 @@ function cancelProcessingList(){
 
 function processSelectorAndListData(data){
   if (current_list === null){ return; }
+  //now that we have data from a given tab, assume we're collecting the list only in that tab
+  var frame_id = data["frame_id"];
+  utilities.sendMessage("mainpanel", "content", "stopProcessingList", "", frame_id, false);
   //store the new selector with the program's list object
   current_list["selector"] = data["selector"];
   //display the list so the user gets feedback
@@ -423,6 +426,9 @@ function processSelectorAndListData(data){
 
 function processNextButtonData(data){
   if (current_list === null){ return; }
+  //now that we have data from a given tab, assume we're collecting the list only in that tab
+  var frame_id = data["frame_id"];
+  utilities.sendMessage("mainpanel", "content", "stopProcessingList", "", frame_id, false);
   //store the next button data with the program's list object
   var next_button_data = current_list["next_button_data"];
   //keys should be tag, text, id, and xpath
