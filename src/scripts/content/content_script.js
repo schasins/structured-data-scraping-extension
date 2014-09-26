@@ -562,11 +562,11 @@ function getMoreItems(data){
   
   if (next_button_type === "scroll_for_more"){
     var get_more_items = function(){window.scrollBy(0,1000);};
-    wholeListHelper(selector, item_limit, get_more_items, send_done);
+    wholeList(selector, item_limit, get_more_items, send_done);
   }
   else if (next_button_type === "more_button"){
     var get_more_items = function(){getNextPage(data)};
-    wholeListHelper(selector, item_limit, get_more_items, send_done);
+    wholeList(selector, item_limit, get_more_items, send_done);
   }
   else if (next_button_type === "next_button"){
     //send the current page's contents.  next button clicking handled elsewhere
