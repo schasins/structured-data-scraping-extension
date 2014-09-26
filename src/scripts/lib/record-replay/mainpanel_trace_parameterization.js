@@ -109,7 +109,7 @@ function ParameterizedTrace(trace){
     }
 
     this.useFrame = function(parameter_name, value) {
-		frames[parameter_name][value] = value;
+		frames[parameter_name]["value"] = value;
     }
 	
 	//TODO tabs: create a parameterize on frame or tab.  not yet sure which
@@ -165,10 +165,11 @@ function ParameterizedTrace(trace){
 	}
 	
 	this.getConfig = function(){
+		console.log("frames", frames);
 		var config = {};
 		config["frameMapping"] = {};
 		for (var param in frames){
-			config[frames[param]["original_value"]] = frames[param]["value"];
+			config["frameMapping"][frames[param]["original_value"]] = frames[param]["value"];
 		}
 		console.log("config", config);
 		return config;

@@ -65,8 +65,8 @@ function runHelper(remaining_program, row_so_far){
 var rd = {"remaining_program": null, "row_so_far": null}; //replay data
 
 function runDemonstration(remaining_program, row_so_far){
-  //console.log("runDemonstration");
-  //console.log(row_so_far);
+  console.log("runDemonstration");
+  console.log(row_so_far);
   var curr_program = remaining_program[0];
   var new_remaining_program = remaining_program.slice(1);
   rd = {"remaining_program": new_remaining_program, "row_so_far": row_so_far};
@@ -81,7 +81,7 @@ function runDemonstration(remaining_program, row_so_far){
     parameterized_trace.useTypedString("str_"+i.toString(), string);
     //use current row's frames as arguments to parameterized trace
     var frame = row_so_far[i]["frame"];
-    parameterized_trace.useTypedString("frame_"+i.toString(), frame);
+    parameterized_trace.useFrame("frame_"+i.toString(), frame);
   }
   
   //TODO tabs: must adjust trace so that list-related items (and anything else
