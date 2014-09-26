@@ -272,7 +272,7 @@ function listClick(event){
   //highlight our new list and send it to the panel
   highlight(current_selector_nodes,"#9EE4FF");
   var textList = _.map(current_selector_nodes, nodeToTextsAndXpaths);
-  var data = {"selector":current_selector,"list":textList,"frame_id":getFrameId()};
+  var data = {"selector":current_selector,"list":textList,"frame_id":SimpleRecord.getFrameId()};
   utilities.sendMessage("content", "mainpanel", "selectorAndListData", data);
   
   //log the new stuff
@@ -511,7 +511,7 @@ function nextButtonClick(event){
   data["text"] = next_or_more_button.text();
   data["id"] = next_or_more_button.attr("id");
   data["xpath"] = nodeToXPath(event.target);
-  data["frame_id"] = getFrameId();
+  data["frame_id"] = SimpleRecord.getFrameId();
   
   //no longer processing next button
   processing_next_button = false;
