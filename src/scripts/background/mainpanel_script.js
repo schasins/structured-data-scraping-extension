@@ -72,21 +72,23 @@ function runDemonstration(remaining_program, row_so_far){
   rd = {"remaining_program": new_remaining_program, "row_so_far": row_so_far};
   var parameterized_trace = curr_program["parameterized_trace"];
   
-  //use current row's xpaths as arguments to parameterized trace
   for (var i = 0; i < row_so_far.length; i++){
+    //use current row's xpaths as arguments to parameterized trace
     var xpath = row_so_far[i]["xpath"];
     parameterized_trace.useXpath("xpath_"+i.toString(), xpath);
-  }
-  
-  //use current row's strings as arguments to parameterized trace
-  for (var i = 0; i < row_so_far.length; i++){
+    //use current row's strings as arguments to parameterized trace
     var string = row_so_far[i]["text"];
     parameterized_trace.useTypedString("str_"+i.toString(), string);
+    //use current row's frames as arguments to parameterized trace
+    var frame = row_so_far[i]["frame"];
+    parameterized_trace.useTypedString("frame_"+i.toString(), frame);
   }
+  
   //TODO tabs: must adjust trace so that list-related items (and anything else
   //with the same unique frame id happens on our list page)
-  var standard_trace = parameterized_trace.standardTrace();
-  SimpleRecord.replay(standard_trace, {}, replayCallback);
+  var standard_trace = parameterized_trace.getStandardTrace();
+  var config = parameterized_trace.getConfig();
+  SimpleRecord.replay(standard_trace, config, replayCallback);
 }
 
 function replayCallback(replay_object){
@@ -292,16 +294,18 @@ function doneRecording(){
   //TODO tabs: also get the recent_list's tab or frame ids, parameterize on that
   //should probably be tab, since frame may change as next button is clicked
   
-  //get xpaths from the first row so far, parameterize on that
   for (var i = 0; i<first_row.length; i++){
+    //get xpaths from the first row so far, parameterize on that
     var xpath = first_row[i]["xpath"];
     current_demonstration["parameterized_trace"].parameterizeXpath("xpath_"+i.toString(), xpath);
-  }
-  
-  //get strings from the first row so far, parameterize on that
-  for (var i = 0; i<first_row.length; i++){
+    //get strings from the first row so far, parameterize on that
     var string = first_row[i]["text"];
     current_demonstration["parameterized_trace"].parameterizeTypedString("str_"+i.toString(), string);
+    //get frames from the first row so far, parameterize on that
+    //can't think of a case where we'd need more than the last list's frame
+    //but I'll keep it this way in case it's needed in future
+    var frame = first_row[i]["frame"];
+    current_demonstration["parameterized_trace"].parameterizeFrame("frame_"+i.toString(), frame);
   }
   
   //search the trace for any captured data, add that to the first row
@@ -365,6 +369,14 @@ function processCapturedData(data){
 /**********************************************************************
  * Guide the user through defining a list selector
 **********************************************************************/
+
+/*
+ * TODO tabs.  record the frame that we restrict lists to, so we can
+ * use this exact frame if it's the first list
+ * if it's not the first list, check if any previous demonstrations did
+ * anything on the frame that produced the list
+ * if yes, will have to parameterize *the list* on demonstration results
+ * /
 
 var current_list = null;
 

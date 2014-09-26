@@ -271,7 +271,7 @@ function listClick(event){
   
   //highlight our new list and send it to the panel
   highlight(current_selector_nodes,"#9EE4FF");
-  var textList = _.map(current_selector_nodes, nodeToTextsAndXpaths);
+  var textList = _.map(current_selector_nodes, nodeToMainpanelNodeRepresentation);
   var data = {"selector":current_selector,"list":textList,"frame_id":SimpleRecord.getFrameId()};
   utilities.sendMessage("content", "mainpanel", "selectorAndListData", data);
   
@@ -292,13 +292,13 @@ function nodeToTexts(node){
   return [nodeToText(node)];
 }
 
-function nodeToTextsAndXpaths(node){
+function nodeToMainpanelNodeRepresentation(node){
   var $node = $(node);
   if ($node.prop("tagName").toLowerCase() === "tr"){
     return _.map($node.children(), function(a){
-		return {"text": $(a).text(), "xpath": nodeToXPath(a)};});
+		return {"text": $(a).text(), "xpath": nodeToXPath(a), "frame": SimpleRecord.getFrameId()};});
   }
-  return [{"text": $(node).text(), "xpath": nodeToXPath(node)}];
+  return [{"text": $(node).text(), "xpath": nodeToXPath(node), "frame": SimpleRecord.getFrameId()}];
 }
 
 function findSibling(node){
@@ -528,7 +528,7 @@ function useSelector(selector){
     highlight(current_selector_nodes,"initial");
     current_selector_nodes = interpretListSelector(selector["dict"], selector["exclude_first"]);
     highlight(current_selector_nodes,"#9EE4FF");
-    list = _.map(current_selector_nodes, nodeToTextsAndXpaths);
+    list = _.map(current_selector_nodes, nodeToMainpanelNodeRepresentation);
     return list;
 }
 

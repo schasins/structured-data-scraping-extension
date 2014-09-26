@@ -1,5 +1,6 @@
 function ParameterizedTrace(trace){
     var trace = trace;
+    var frames = {};
     
     /* xpath parameterization */
 
@@ -100,6 +101,17 @@ function ParameterizedTrace(trace){
 		}
 	}
 	
+	
+    /* frame parameterization */
+    
+    this.parameterizeFrame = function(parameter_name, original_value) {
+		frames[parameter_name] = {original_value: original_value};
+    }
+
+    this.useFrame = function(parameter_name, value) {
+		frames[parameter_name][value] = value;
+    }
+	
 	//TODO tabs: create a parameterize on frame or tab.  not yet sure which
 	//we'll be using it for cases where a demonstration does something on a list page
 	//could be the first list page, in which case tab always the same, but could
@@ -114,7 +126,7 @@ function ParameterizedTrace(trace){
 		}
 	}
     
-    this.standardTrace = function(){
+    this.getStandardTrace = function(){
 		var cloned_trace = clone(trace);
 		var prop_corrections = {};
         for (var i = 0; i< cloned_trace.length; i++){
@@ -150,5 +162,14 @@ function ParameterizedTrace(trace){
 			}
 		}
 		return cloned_trace;
+	}
+	
+	this.getConfig = function(){
+		var config = {};
+		config["frameMapping"] = {};
+		for (var param in frames){
+			config[frames[param]["original_value"]] = frames[param]["value"];
+		}
+		return config;
 	}
 }
