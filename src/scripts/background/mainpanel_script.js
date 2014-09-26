@@ -145,6 +145,11 @@ var wait = {"wait":"wait"};
 var waiting_for_items = false;
 
 function runListGetNextItem(program_list){
+  //if we've passed the item limit, we're done
+  if (lrd["total_counter"] >= (program_list["item_limit"])){
+    return null;
+  }
+  
   var current_items = lrd["current_items"];
   var counter = lrd["counter"];
   if (counter < current_items.length){
@@ -155,8 +160,8 @@ function runListGetNextItem(program_list){
   }
   //we haven't yet retireved any items, or we've run out
   
-  //if we've passed the item limit or can't find more, we're done
-  if (lrd["total_counter"] >= (program_list["item_limit"]-1) || lrd["no_more_items"]){
+  //if we can't find more, we're done
+  if (lrd["no_more_items"]){
     return null;
   }
   //still waiting for items from the last call
