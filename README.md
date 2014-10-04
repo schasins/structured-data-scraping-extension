@@ -52,20 +52,20 @@ The tool currently targets relational data and pages with consistent structures.
 
 <b>12.</b> To collect data during an interaction demonstration, click the "Start Capturing" button.
 
-![Image for direction 12.](/readme/demo11.png?raw=true)
+![Image for direction 12.](/readme/demo12.png?raw=true)
 
 <b>13.</b> Click on data in the webpage to indicate that you want to add it to the first row.  In the screen capture below, we've clicked on the box that contains the author's tags.  The data captured so far is shown in the RS control panel.  Once you've captured all the data you want, click the "Done Capturing" button.
 
-![Image for direction 13.](/readme/demo12.png?raw=true)
+![Image for direction 13.](/readme/demo13.png?raw=true)
 
 <b>14.</b> After clicking the "Done Recording" button on the interaction demonstration panel, you'll see what your interaction demonstration has added to the first row of your spreadsheet.  As before, you'll see the first row so far at the bottom of the control panel.  Repeat steps 3 through 13 until you've completed the whole first row of your spreadsheet.
 
-![Image for direction 14.](/readme/demo13.png?raw=true)
+![Image for direction 14.](/readme/demo14.png?raw=true)
 
 <b>15.</b> Now that the whole first row of your spreadsheet is complete, you're ready to run RS.  Click the "Run" button, and let RS do the scraping for you!
 
-![Image for direction 15.](/readme/demo14.png?raw=true)
+![Image for direction 15.](/readme/demo15.png?raw=true)
 
 <b>16.</b> Once RS has finished running, find your full dataset in the control panel.
 
-![Image for direction 16.](/readme/demo15.png?raw=true)
+![Image for direction 16.](/readme/demo16.png?raw=true)
