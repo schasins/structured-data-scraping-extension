@@ -69,5 +69,3 @@ The tool currently targets relational data and pages with consistent structures.
 <b>16.</b> Once RS has finished running, find your full dataset in the control panel.
 
 ![Image for direction 16.](/readme/demo15.png?raw=true)
-
-<hr>
