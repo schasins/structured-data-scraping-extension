@@ -15,7 +15,7 @@ var SimpleRecord = (function SimpleRecordClosure() {
     getFrameId: function _getFrameId() {
       if (frameId == 'setme')
         return null;
-        
+      
       return frameId;
     },
   };

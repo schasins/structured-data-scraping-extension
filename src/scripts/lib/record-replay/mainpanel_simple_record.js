@@ -24,7 +24,7 @@ var SimpleRecord = (function SimpleRecordClosure() {
      *   frameMapping
      * @param {function} callback - callback function which should accept the replay object
      */
-    replay: function _replay(trace, config, callback) {
+     replay: function _replay(trace, config, callback) {
       controller.replayScript(trace, config, callback);
     }
   };

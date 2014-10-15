@@ -1,21 +1,21 @@
 /**********************************************************************
  * Author: S. Chasins
-**********************************************************************/
+ **********************************************************************/
 
 /**********************************************************************
  * Listeners and general set up
-**********************************************************************/
+ **********************************************************************/
 
-var processing_list = false;
-var processing_next_button = false;
-var processing_capture = false;
+ var processing_list = false;
+ var processing_next_button = false;
+ var processing_capture = false;
 
-function off(){
-	return !(processing_list || processing_next_button || processing_capture);
-}
+ function off(){
+   return !(processing_list || processing_next_button || processing_capture);
+ }
 
-function setUp(){
-	
+ function setUp(){
+   
   //user event handling
   document.addEventListener('mouseover', outline, true);
   document.addEventListener('mouseout', unoutline, true);
@@ -44,13 +44,13 @@ $(setUp);
 
 /**********************************************************************
  * Color guide to show users the node they're about to select
-**********************************************************************/
+ **********************************************************************/
 
-var stored_background_colors = {};
-var stored_outlines = {};
-var current_target = null;
+ var stored_background_colors = {};
+ var stored_outlines = {};
+ var current_target = null;
 
-function targetFromEvent(event){
+ function targetFromEvent(event){
   var $target = $(event.target);
   //if CTRL was pressed, we want not the table cell but the whole row
   if (event.ctrlKey==1){
@@ -103,7 +103,7 @@ function outlineAdjustUp(event){
 
 /**********************************************************************
  * Domain-specific functionality
-**********************************************************************/
+ **********************************************************************/
 
 /* Available features:
  * tag
@@ -114,16 +114,16 @@ function outlineAdjustUp(event){
  * xpath
  * Additional processing:
  * excludeFirst
-*/
+ */
 
-var all_features = ["tag", "class", 
-  "left", "bottom", "right", "top", "width", "height",
-  "font-size", "font-family", "font-style", "font-weight", "color",
-  "background-color", 
-  "preceding-text",
-  "xpath"];
+ var all_features = ["tag", "class", 
+ "left", "bottom", "right", "top", "width", "height",
+ "font-size", "font-family", "font-style", "font-weight", "color",
+ "background-color", 
+ "preceding-text",
+ "xpath"];
 
-function getFeature(element, feature){
+ function getFeature(element, feature){
   if (feature == "xpath"){
     return xPathToXPathList(nodeToXPath(element));
   }
@@ -170,9 +170,9 @@ function getAllCandidates(){
 
 /**********************************************************************
  * Domain-independent interpreter
-**********************************************************************/
+ **********************************************************************/
 
-function interpretListSelector(feature_dict, exclude_first){
+ function interpretListSelector(feature_dict, exclude_first){
   var candidates = getAllCandidates();
   var list = [];
   for (i=0;i<candidates.length;i++){
@@ -200,29 +200,29 @@ function interpretListSelector(feature_dict, exclude_first){
 
 /**********************************************************************
  * User interface
-**********************************************************************/
+ **********************************************************************/
 
-var positive_nodes = [];
-var negative_nodes = [];
-var current_selector = null;
-var current_selector_nodes = [];
-var first_click = true;
-var likeliest_sibling = null;
+ var positive_nodes = [];
+ var negative_nodes = [];
+ var current_selector = null;
+ var current_selector_nodes = [];
+ var first_click = true;
+ var likeliest_sibling = null;
 
-function startProcessingList(){
-	processing_list = true;
-	
-	positive_nodes = [];
-	negative_nodes = [];
-	current_selector = null;
-	current_selector_nodes = [];
-	first_click = true;
-	likeliest_sibling = null;
-}
+ function startProcessingList(){
+   processing_list = true;
+   
+   positive_nodes = [];
+   negative_nodes = [];
+   current_selector = null;
+   current_selector_nodes = [];
+   first_click = true;
+   likeliest_sibling = null;
+ }
 
-function stopProcessingList(){
-	processing_list = false;
-  
+ function stopProcessingList(){
+   processing_list = false;
+   
   //dehighlight our old list
   highlight(current_selector_nodes,"initial");
 }
@@ -296,7 +296,7 @@ function nodeToMainpanelNodeRepresentation(node){
   var $node = $(node);
   if ($node.prop("tagName").toLowerCase() === "tr"){
     return _.map($node.children(), function(a){
-		return {"text": $(a).text(), "xpath": nodeToXPath(a), "frame": SimpleRecord.getFrameId()};});
+      return {"text": $(a).text(), "xpath": nodeToXPath(a), "frame": SimpleRecord.getFrameId()};});
   }
   return [{"text": $(node).text(), "xpath": nodeToXPath(node), "frame": SimpleRecord.getFrameId()}];
 }
@@ -390,9 +390,9 @@ function featureDict(features, positive_nodes){
 /**********************************************************************
  * Helper functions for making and handling xpath lists
  * (my easier to manipulate representation of xpaths)
-**********************************************************************/
+ **********************************************************************/
 
-function xPathToXPathList(xpath){
+ function xPathToXPathList(xpath){
   var xpathList = [];
   for (var i = 0; i<xpath.length; i++){
     var char = xpath[i];
@@ -491,14 +491,14 @@ function xPathToString(xpath_list){
 
 /**********************************************************************
  * Handle next buttons
-**********************************************************************/
+ **********************************************************************/
 
-function startProcessingNextButton(){
-	processing_list = false;
-	processing_next_button = true;
-}
+ function startProcessingNextButton(){
+   processing_list = false;
+   processing_next_button = true;
+ }
 
-function nextButtonClick(event){
+ function nextButtonClick(event){
   if (!processing_next_button){
     return;
   }
@@ -522,14 +522,14 @@ function nextButtonClick(event){
 
 /**********************************************************************
  * For the mainpanel to call when collecting the real data
-**********************************************************************/
+ **********************************************************************/
 
-function useSelector(selector){
-    highlight(current_selector_nodes,"initial");
-    current_selector_nodes = interpretListSelector(selector["dict"], selector["exclude_first"]);
-    highlight(current_selector_nodes,"#9EE4FF");
-    list = _.map(current_selector_nodes, nodeToMainpanelNodeRepresentation);
-    return list;
+ function useSelector(selector){
+  highlight(current_selector_nodes,"initial");
+  current_selector_nodes = interpretListSelector(selector["dict"], selector["exclude_first"]);
+  highlight(current_selector_nodes,"#9EE4FF");
+  list = _.map(current_selector_nodes, nodeToMainpanelNodeRepresentation);
+  return list;
 }
 
 function wholeList(selector, item_limit, get_more_items_func, send_message_func){
@@ -629,9 +629,9 @@ function findNextButton(next_button_data){
 
 /**********************************************************************
  * Handle captures, our term for scraping a given node's data
-**********************************************************************/
+ **********************************************************************/
 
-$(function(){
+ $(function(){
   additional_recording_handlers["capture"] = function(node){
     var data = {"text": nodeToText(node), "xpath": nodeToXPath(node)};
     utilities.sendMessage("content", "mainpanel", "capturedData", data);
@@ -640,7 +640,7 @@ $(function(){
   }
 }); //run once page loaded, because else runs before r+r content script
 
-function startProcessingCapture(){
+ function startProcessingCapture(){
   processing_capture = true; //controls color guide
   //TODO: decide whether actions during capture should have their usual effects
   additional_recording_handlers_on["capture"] = true;
@@ -653,9 +653,9 @@ function stopProcessingCapture(){
 
 /**********************************************************************
  * Helper functions
-**********************************************************************/
+ **********************************************************************/
 
-function highlight(nodeList,color){
+ function highlight(nodeList,color){
   for (var i = 0; i < nodeList.length ; i++){
     var $node = $(nodeList[i]);
     stored_background_colors[$node.html()] = color;
@@ -666,21 +666,21 @@ function highlight(nodeList,color){
 function levenshteinDistance (a, b) {
   if(a.length === 0) return b.length; 
   if(b.length === 0) return a.length; 
- 
+  
   var matrix = [];
- 
+  
   // increment along the first column of each row
   var i;
   for(i = 0; i <= b.length; i++){
     matrix[i] = [i];
   }
- 
+  
   // increment each column in the first row
   var j;
   for(j = 0; j <= a.length; j++){
     matrix[0][j] = j;
   }
- 
+  
   // Fill in the rest of the matrix
   for(i = 1; i <= b.length; i++){
     for(j = 1; j <= a.length; j++){
@@ -693,7 +693,7 @@ function levenshteinDistance (a, b) {
       }
     }
   }
- 
+  
   return matrix[b.length][a.length];
 };
 
@@ -721,7 +721,7 @@ function nodeToXPath(element) {
     var sibling = siblings[i];
     if (sibling === element){
       return nodeToXPath(element.parentNode) + '/' + element.tagName +
-	     '[' + (ix + 1) + ']';
+      '[' + (ix + 1) + ']';
     }
     if (sibling.nodeType === 1 && sibling.tagName === element.tagName){
       ix++;
@@ -732,7 +732,7 @@ function nodeToXPath(element) {
 function xPathToNodes(xpath) {
   try {
     var q = document.evaluate(xpath, document, null, XPathResult.ANY_TYPE,
-                              null);
+      null);
     var results = [];
 
     var next = q.iterateNext();

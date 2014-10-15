@@ -5,11 +5,11 @@ utilities.listenForMessage = function(from, to, subject,fn){
   if (to === "background" || to === "mainpanel"){
     chrome.runtime.onMessage.addListener(function(msg, sender) {
       if (msg.from && (msg.from === from)
-		      && msg.subject && (msg.subject === subject)) {
+        && msg.subject && (msg.subject === subject)) {
         console.log("Receiving message: ", msg);
-	      fn(msg.content);
-      }
-    });
+      fn(msg.content);
+    }
+  });
   }
   else if (to === "content"){
     chrome.extension.onMessage.addListener(function(msg, sender) {
@@ -23,11 +23,11 @@ utilities.listenForMessage = function(from, to, subject,fn){
         return;
       }
       if (msg.from && (msg.from === from)
-	      && msg.subject && (msg.subject === subject)) {
+       && msg.subject && (msg.subject === subject)) {
         console.log("Receiving message: ", msg);
-        fn(msg.content);
-      }
-    });
+      fn(msg.content);
+    }
+  });
   }
 }
 
@@ -38,9 +38,9 @@ utilities.sendMessage = function(from, to, subject, content, frame_id, include_i
     console.log("Sending message: ", msg);
     chrome.tabs.query({windowType: "normal"}, function(tabs){
       console.log("(Sending to "+tabs.length+" tabs.)");
-        for (i =0; i<tabs.length; i++){
-          chrome.tabs.sendMessage(tabs[i].id, msg); 
-        }
+      for (i =0; i<tabs.length; i++){
+        chrome.tabs.sendMessage(tabs[i].id, msg); 
+      }
     });
   }
   else if (from === "content") {

@@ -30,7 +30,7 @@ var first_row = [];
 
 /**********************************************************************
  * Run the program
-**********************************************************************/
+ **********************************************************************/
 
 var stack = [];
 
@@ -86,9 +86,9 @@ function runDemonstration(remaining_program, row_so_far){
   
   //TODO tabs: must adjust trace so that list-related items (and anything else
   //with the same unique frame id happens on our list page)
-  var standard_trace = parameterized_trace.getStandardTrace();
-  var config = parameterized_trace.getConfig();
-  SimpleRecord.replay(standard_trace, config, replayCallback);
+var standard_trace = parameterized_trace.getStandardTrace();
+var config = parameterized_trace.getConfig();
+SimpleRecord.replay(standard_trace, config, replayCallback);
 }
 
 function replayCallback(replay_object){
@@ -139,12 +139,12 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
 
 /**********************************************************************
  * Communication with the content script to get list items
-**********************************************************************/
+ **********************************************************************/
 
-var wait = {"wait":"wait"};
-var waiting_for_items = false;
+ var wait = {"wait":"wait"};
+ var waiting_for_items = false;
 
-function runListGetNextItem(program_list){
+ function runListGetNextItem(program_list){
   //if we've passed the item limit, we're done
   if (lrd["total_counter"] >= (program_list["item_limit"])){
     return null;
@@ -170,8 +170,8 @@ function runListGetNextItem(program_list){
   }
   //out of items and haven't yet asked for more
   var data = {"selector": program_list["selector"],
-	      "next_button_data": program_list["next_button_data"],
-	      "item_limit": program_list["item_limit"]};
+  "next_button_data": program_list["next_button_data"],
+  "item_limit": program_list["item_limit"]};
   if (data["next_button_data"]["type"] === "next_button" && !lrd["skip_next"]){
     //TODO tabs: send this to the right tab (not frame), not just any old tab
     //if this list is the first program component, tab should always be same
@@ -216,9 +216,9 @@ function moreItems(data){
 
 /**********************************************************************
  * Show visual representation of the program, the results
-**********************************************************************/
+ **********************************************************************/
 
-function programView(){
+ function programView(){
   var div = $("#result_table_div")
   div.html("<h4>Process</h4>");
   var first_row_str = "<div id='first_row'><h4>First Row</h4>";
@@ -269,25 +269,25 @@ function arrayOfArraysToTable(arrayOfArrays){
 
 /**********************************************************************
  * Guide the user through making a demonstration recording
-**********************************************************************/
+ **********************************************************************/
 
-var current_demonstration = null;
+ var current_demonstration = null;
 
-function startProcessingDemonstration(){
-	current_demonstration = {"type": "demonstration", "first_row_elems": [], "parameterized_trace": []};
-	program.push(current_demonstration);
-  
-  var div = $("#result_table_div");
-	div.html($("#new_demonstration").html());
-	
-	div.find(".start_recording").click(startRecording);
-	div.find(".done_recording").click(doneRecording);
-	div.find(".cancel_recording").click(cancelRecording);
-	div.find(".start_capturing").click(startProcessingCapture);
-	div.find(".stop_capturing").click(stopProcessingCapture);
-}
+ function startProcessingDemonstration(){
+   current_demonstration = {"type": "demonstration", "first_row_elems": [], "parameterized_trace": []};
+   program.push(current_demonstration);
 
-function startRecording(){
+   var div = $("#result_table_div");
+   div.html($("#new_demonstration").html());
+
+   div.find(".start_recording").click(startRecording);
+   div.find(".done_recording").click(doneRecording);
+   div.find(".cancel_recording").click(cancelRecording);
+   div.find(".start_capturing").click(startProcessingCapture);
+   div.find(".stop_capturing").click(stopProcessingCapture);
+ }
+
+ function startRecording(){
   SimpleRecord.startRecording();
 }
 
@@ -319,8 +319,8 @@ function doneRecording(){
   first_row.concat(items);
   
   console.log("trace", _.filter(trace, function(obj){return obj.type === "dom";}));
-	current_demonstration = null;
-	programView();
+  current_demonstration = null;
+  programView();
 }
 
 function capturesFromTrace(trace){
@@ -345,9 +345,9 @@ function sanitizeTrace(trace){
 
 function cancelRecording(){
   SimpleRecord.stopRecording();
-	program = _.without(program, current_demonstration);
-	current_demonstration = null;
-	programView();
+  program = _.without(program, current_demonstration);
+  current_demonstration = null;
+  programView();
 }
 
 var captured = {};
@@ -373,7 +373,7 @@ function processCapturedData(data){
 
 /**********************************************************************
  * Guide the user through defining a list selector
-**********************************************************************/
+ **********************************************************************/
 
 /*
  * TODO tabs.  record the frame that we restrict lists to, so we can
@@ -452,8 +452,8 @@ function processNextButtonData(data){
   var next_button_data = current_list["next_button_data"];
   //keys should be tag, text, id, and xpath
   for (var k in data){
-	  next_button_data[k] = data[k];
-  }
+   next_button_data[k] = data[k];
+ }
 }
 
 function processNextButtonType(event){
