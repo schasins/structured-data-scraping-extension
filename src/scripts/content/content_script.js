@@ -15,7 +15,7 @@
  }
 
  function setUp(){
-   
+
   //user event handling
   document.addEventListener('mouseover', outline, true);
   document.addEventListener('mouseout', unoutline, true);
@@ -53,7 +53,7 @@ $(setUp);
  function targetFromEvent(event){
   var $target = $(event.target);
   //if CTRL was pressed, we want not the table cell but the whole row
-  if (event.ctrlKey==1){
+  if (event.ctrlKey === 1){
     $ps = $target.closest("tr");
     if ($ps){ $target = $ps;}
   }
@@ -124,10 +124,10 @@ function outlineAdjustUp(event){
  "xpath"];
 
  function getFeature(element, feature){
-  if (feature == "xpath"){
+  if (feature === "xpath"){
     return xPathToXPathList(nodeToXPath(element));
   }
-  else if (feature == "preceding-text"){
+  else if (feature === "preceding-text"){
     return $(element).prev().text();
   }
   else if (_.contains(["tag","class"],feature)){
@@ -144,10 +144,10 @@ function outlineAdjustUp(event){
 }
 
 function featureMatch(feature, value, acceptable_values){
-  if (feature == "xpath"){
+  if (feature === "xpath"){
     return _.reduce(acceptable_values, function(acc, av){ return (acc || (xPathMatch(av, value))); }, false);
   }
-  else if (feature == "class"){
+  else if (feature === "class"){
     //class doesn't have to be same, just has to include the target class
     //TODO: Decide if that's really how we want it
     return _.reduce(acceptable_values, function(acc, av){ return (acc || (value.indexOf(av) > -1)); }, false);
@@ -158,7 +158,7 @@ function featureMatch(feature, value, acceptable_values){
 }
 
 function collapseValues(feature, values){
-  if (feature == "xpath"){
+  if (feature === "xpath"){
     return xPathReduction(values);
   }
   return _.uniq(values);
@@ -211,7 +211,7 @@ function getAllCandidates(){
 
  function startProcessingList(){
    processing_list = true;
-   
+
    positive_nodes = [];
    negative_nodes = [];
    current_selector = null;
@@ -222,7 +222,7 @@ function getAllCandidates(){
 
  function stopProcessingList(){
    processing_list = false;
-   
+
   //dehighlight our old list
   highlight(current_selector_nodes,"initial");
 }
@@ -260,7 +260,7 @@ function listClick(event){
   //do this by adding a second likely list member to positive examples
   if (first_click){
     likeliest_sibling = findSibling(positive_nodes[0]);
-    if (likeliest_sibling != null){
+    if (likeliest_sibling !== null){
       positive_nodes.push(likeliest_sibling);
     }
     first_click = false;
@@ -340,7 +340,7 @@ function synthesizeSelector(features){
   for (var i = 0; i < nodes.length ; i++){
     var node = nodes[i];
     if (_.contains(negative_nodes, node)){
-      if (i == 0){
+      if (i === 0){
         exclude_first = true;
       }
       else if (features !== almost_all_features) {
@@ -380,7 +380,7 @@ function featureDict(features, positive_nodes){
   var filtered_feature_dict = {};
   for (var feature in feature_dict){
     var values = collapseValues(feature, feature_dict[feature]["values"]);
-    if (feature == "xpath" || (values.length <= 3 && values.length != positive_nodes.length && values.length != (positive_nodes.length - 1))){
+    if (feature === "xpath" || (values.length <= 3 && values.length !== positive_nodes.length && values.length !== (positive_nodes.length - 1))){
       filtered_feature_dict[feature] = {"values":values,"pos":true};
     }
   }
@@ -396,15 +396,15 @@ function featureDict(features, positive_nodes){
   var xpathList = [];
   for (var i = 0; i<xpath.length; i++){
     var char = xpath[i];
-    if (char == "[") {
+    if (char === "[") {
       var start = i;
       var end = start + 1;
-      while (xpath[end] != "]") {
+      while (xpath[end] !== "]") {
         end += 1;
       }
       var prefix = xpath.slice(0,start); //don't include brackets
       var suffix = xpath.slice(end+1,xpath.length); //don't include brackets
-      var slashIndex = prefix.lastIndexOf("/")
+      var slashIndex = prefix.lastIndexOf("/");
       var nodeName = prefix.slice(slashIndex+1,prefix.length);
       var index = xpath.slice(start+1,end);
       xpathList.push({"nodeName": nodeName, "index": index, "iterable": false});
@@ -414,16 +414,16 @@ function featureDict(features, positive_nodes){
 }
 
 function xPathMatch(xPathWithWildcards,xPath){
-  if (xPathWithWildcards.length != xPath.length){
+  if (xPathWithWildcards.length !== xPath.length){
     return false;
   }
   for (var i = 0; i < xPathWithWildcards.length; i++){
     var targetNode = xPathWithWildcards[i];
     var node = xPath[i];
-    if (targetNode.nodeName != node.nodeName){
+    if (targetNode.nodeName !== node.nodeName){
       return false;
     }
-    if (targetNode.iterable == false && targetNode.index != node.index){
+    if (targetNode.iterable === false && targetNode.index !== node.index){
       return false;
     }
   }
@@ -431,16 +431,16 @@ function xPathMatch(xPathWithWildcards,xPath){
 }
 
 function xPathMerge(xPathWithWildcards, xPath){
-  if (xPathWithWildcards.length != xPath.length){
+  if (xPathWithWildcards.length !== xPath.length){
     return false;
   }
   for (var i = 0; i < xPathWithWildcards.length; i++){
     var targetNode = xPathWithWildcards[i];
     var node = xPath[i];
-    if (targetNode.nodeName != node.nodeName){
+    if (targetNode.nodeName !== node.nodeName){
       return false;
     }
-    if (targetNode.iterable == false && targetNode.index != node.index){
+    if (targetNode.iterable === false && targetNode.index !== node.index){
       targetNode.iterable = true;
     }
   }
@@ -545,7 +545,7 @@ function wholeListHelper(list_so_far, steps_since_progress, selector, item_limit
     if (list_so_far.length > old_length){
       steps_since_progress = 0;
     }
-    setTimeout(function(){wholeListHelper(list_so_far, steps_since_progress, selector, item_limit, get_more_items_func, send_message_func)},500);
+    setTimeout(function(){wholeListHelper(list_so_far, steps_since_progress, selector, item_limit, get_more_items_func, send_message_func);},500);
   }
   else{
     send_message_func(list_so_far);
@@ -565,7 +565,7 @@ function getMoreItems(data){
     wholeList(selector, item_limit, get_more_items, send_done);
   }
   else if (next_button_type === "more_button"){
-    var get_more_items = function(){getNextPage(data)};
+    var get_more_items = function(){getNextPage(data);};
     wholeList(selector, item_limit, get_more_items, send_done);
   }
   else if (next_button_type === "next_button"){
@@ -594,7 +594,7 @@ function findNextButton(next_button_data){
   var next_or_more_button_id = next_button_data["id"];
   var next_or_more_button_xpath = next_button_data["xpath"];
   var button = null;
-  var candidate_buttons = $(next_or_more_button_tag).filter(function(){ return $(this).text() === next_or_more_button_text;})
+  var candidate_buttons = $(next_or_more_button_tag).filter(function(){ return $(this).text() === next_or_more_button_text;});
   //hope there's only one button
   if (candidate_buttons.length === 1){
     button = candidate_buttons[0];
@@ -637,7 +637,7 @@ function findNextButton(next_button_data){
     utilities.sendMessage("content", "mainpanel", "capturedData", data);
     console.log("capture", data);
     return data;
-  }
+  };
 }); //run once page loaded, because else runs before r+r content script
 
  function startProcessingCapture(){
@@ -666,25 +666,25 @@ function stopProcessingCapture(){
 function levenshteinDistance (a, b) {
   if(a.length === 0) return b.length; 
   if(b.length === 0) return a.length; 
-  
+
   var matrix = [];
-  
+
   // increment along the first column of each row
   var i;
   for(i = 0; i <= b.length; i++){
     matrix[i] = [i];
   }
-  
+
   // increment each column in the first row
   var j;
   for(j = 0; j <= a.length; j++){
     matrix[0][j] = j;
   }
-  
+
   // Fill in the rest of the matrix
   for(i = 1; i <= b.length; i++){
     for(j = 1; j <= a.length; j++){
-      if(b.charAt(i-1) == a.charAt(j-1)){
+      if(b.charAt(i-1) === a.charAt(j-1)){
         matrix[i][j] = matrix[i-1][j-1];
       } else {
         matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, // substitution
@@ -693,7 +693,7 @@ function levenshteinDistance (a, b) {
       }
     }
   }
-  
+
   return matrix[b.length][a.length];
 };
 

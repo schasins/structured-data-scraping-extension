@@ -54,10 +54,10 @@ function runHelper(remaining_program, row_so_far){
     return;
   }
   var prog_item = remaining_program[0];
-  if (prog_item["type"] === "list"){
+  if (prog_item.type === "list"){
     runList(remaining_program, row_so_far);
   }
-  else if (prog_item["type"] === "demonstration"){
+  else if (prog_item.type === "demonstration"){
     runDemonstration(remaining_program, row_so_far);
   }
 }
@@ -70,17 +70,17 @@ function runDemonstration(remaining_program, row_so_far){
   var curr_program = remaining_program[0];
   var new_remaining_program = remaining_program.slice(1);
   rd = {"remaining_program": new_remaining_program, "row_so_far": row_so_far};
-  var parameterized_trace = curr_program["parameterized_trace"];
+  var parameterized_trace = curr_program.parameterized_trace;
   
   for (var i = 0; i < row_so_far.length; i++){
     //use current row's xpaths as arguments to parameterized trace
-    var xpath = row_so_far[i]["xpath"];
+    var xpath = row_so_far[i].xpath;
     parameterized_trace.useXpath("xpath_"+i.toString(), xpath);
     //use current row's strings as arguments to parameterized trace
-    var string = row_so_far[i]["text"];
+    var string = row_so_far[i].text;
     parameterized_trace.useTypedString("str_"+i.toString(), string);
     //use current row's frames as arguments to parameterized trace
-    var frame = row_so_far[i]["frame"];
+    var frame = row_so_far[i].frame;
     parameterized_trace.useFrame("frame_"+i.toString(), frame);
   }
   
@@ -95,12 +95,12 @@ function replayCallback(replay_object){
   //console.log("replayCallback");
   //console.log(rd["row_so_far"]);
   //console.log("replayObject", replay_object);
-  var trace = replay_object["record"]["events"];
-  var new_row_so_far = rd["row_so_far"];
+  var trace = replay_object.record.events;
+  var new_row_so_far = rd.row_so_far;
   var replay_trace = replay_object.record.events;
   var texts = capturesFromTrace(replay_trace);
   //var items = _.map(texts, function(a){return {"text": a};});
-  runHelper(rd["remaining_program"],new_row_so_far.concat(texts));
+  runHelper(rd.remaining_program,new_row_so_far.concat(texts));
 }
 
 var lrd = {"current_items": [], "counter": 0, "total_counter": 0, "no_more_items": false, "type": null, "skip_next": true}; //list retrieval data
@@ -110,7 +110,7 @@ function runList(remaining_program, row_so_far){
   //console.log(row_so_far);
   var curr_program = remaining_program[0];
   var new_remaining_program = remaining_program.slice(1);
-  lrd = {"current_items": [], "counter": 0, "total_counter": 0, "no_more_items": false, "type": curr_program["next_button_data"]["type"], "skip_next": true};
+  lrd = {"current_items": [], "counter": 0, "total_counter": 0, "no_more_items": false, "type": curr_program.next_button_data.type, "skip_next": true};
   runListLoop(curr_program,new_remaining_program,row_so_far);
 }
 
@@ -146,22 +146,22 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
 
  function runListGetNextItem(program_list){
   //if we've passed the item limit, we're done
-  if (lrd["total_counter"] >= (program_list["item_limit"])){
+  if (lrd.total_counter >= (program_list.item_limit)){
     return null;
   }
   
-  var current_items = lrd["current_items"];
-  var counter = lrd["counter"];
+  var current_items = lrd.current_items;
+  var counter = lrd.counter;
   if (counter < current_items.length){
     var ret = current_items[counter];
-    lrd["counter"]++;
-    lrd["total_counter"]++;
+    lrd.counter++;
+    lrd.total_counter++;
     return ret;
   }
   //we haven't yet retireved any items, or we've run out
   
   //if we can't find more, we're done
-  if (lrd["no_more_items"]){
+  if (lrd.no_more_items){
     return null;
   }
   //still waiting for items from the last call
@@ -169,19 +169,19 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
     return wait;
   }
   //out of items and haven't yet asked for more
-  var data = {"selector": program_list["selector"],
-  "next_button_data": program_list["next_button_data"],
-  "item_limit": program_list["item_limit"]};
-  if (data["next_button_data"]["type"] === "next_button" && !lrd["skip_next"]){
+  var data = {"selector": program_list.selector,
+  "next_button_data": program_list.next_button_data,
+  "item_limit": program_list.item_limit};
+  if (data.next_button_data.type === "next_button" && !lrd.skip_next){
     //TODO tabs: send this to the right tab (not frame), not just any old tab
     //if this list is the first program component, tab should always be same
     //otherwise we should be getting it from the previous demo, because
     //when first recorded, we should have figured out which demo events overlapped with the list page's tab
-    utilities.sendMessage("mainpanel", "content", "getNextPage", data, program_list["frame_id"]);
+    utilities.sendMessage("mainpanel", "content", "getNextPage", data, program_list.frame_id);
   }
-  lrd["skip_next"] = false;
+  lrd.skip_next = false;
   //TODO tabs: send this to the right tab (not frame), not just any old tab
-  utilities.sendMessage("mainpanel", "content", "getMoreItems", data, program_list["frame_id"]);
+  utilities.sendMessage("mainpanel", "content", "getMoreItems", data, program_list.frame_id);
   waiting_for_items = true;
   return wait;
 }
@@ -191,25 +191,25 @@ function moreItems(data){
     return;
   }
   waiting_for_items = false;
-  if (lrd["type"] !== "next_button"){
+  if (lrd.type !== "next_button"){
     //this was a 'more' button, not 'next' button, so these are all
     //the items we could get
-    lrd["current_items"] = data["items"];
-    lrd["no_more_items"] = true;
+    lrd.current_items = data.items;
+    lrd.no_more_items = true;
   }
   else{
     //this was a 'next' button
-    if (_.isEqual(lrd["current_items"],data["items"])){
+    if (_.isEqual(lrd.current_items,data.items)){
       //we got a repeat, must have sent message before next button worked
       //let's try again
       //just set skip_next true again so that runListGetNextItem won't try to press next
-      lrd["skip_next"] = true; 
+      lrd.skip_next = true; 
       waiting_for_items = false;
     }
     else{
-      lrd["current_items"] = data["items"];
-      lrd["counter"] = 0;
-      lrd["no_more_items"] = data["no_more_items"];
+      lrd.current_items = data.items;
+      lrd.counter = 0;
+      lrd.no_more_items = data.no_more_items;
     }
   }
 }
@@ -219,14 +219,14 @@ function moreItems(data){
  **********************************************************************/
 
  function programView(){
-  var div = $("#result_table_div")
+  var div = $("#result_table_div");
   div.html("<h4>Process</h4>");
   var first_row_str = "<div id='first_row'><h4>First Row</h4>";
   for (var i = 0; i<program.length; i++){
     var item = program[i];
-    var program_item_str = "<div class='clear'><div class='prog_"+item["type"]+"'>"+item["type"]+"</div>";
-    for (var j = 0; j<item["first_row_elems"].length; j++){
-      var elem = item["first_row_elems"][j];
+    var program_item_str = "<div class='clear'><div class='prog_"+item.type+"'>"+item.type+"</div>";
+    for (var j = 0; j<item.first_row_elems.length; j++){
+      var elem = item.first_row_elems[j];
       elem_str = "<div class='first_row_elem'>"+elem+"</div>";
       program_item_str += elem_str;
       first_row_str += elem_str;
@@ -239,7 +239,7 @@ function moreItems(data){
 }
 
 function resultsView(){
-  var div = $("#result_table_div")
+  var div = $("#result_table_div");
   div.html("");
   var table = arrayOfArraysToTable(results);
   div.append(table);
@@ -254,8 +254,8 @@ function arrayOfArraysToTable(arrayOfArrays){
     var $tr = $("<tr></tr>");
     for (var j= 0; j< array.length; j++){
       var $td = $("<td></td>");
-      if (array[j]["text"]){
-        $td.html(_.escape(array[j]["text"]));
+      if (array[j].text){
+        $td.html(_.escape(array[j].text));
       }
       else {
         $td.html(_.escape(array[j]));
@@ -294,14 +294,14 @@ function arrayOfArraysToTable(arrayOfArrays){
 function doneRecording(){
   var trace = SimpleRecord.stopRecording();
   trace = sanitizeTrace(trace);
-  current_demonstration["parameterized_trace"] = new ParameterizedTrace(trace);
+  current_demonstration.parameterized_trace = new ParameterizedTrace(trace);
   
   //TODO tabs: also get the recent_list's tab or frame ids, parameterize on that
   //should probably be tab, since frame may change as next button is clicked
   
   for (var i = 0; i<first_row.length; i++){
     //get xpaths from the first row so far, parameterize on that
-    var xpath = first_row[i]["xpath"];
+    var xpath = first_row[i].xpath;
     current_demonstration["parameterized_trace"].parameterizeXpath("xpath_"+i.toString(), xpath);
     //get strings from the first row so far, parameterize on that
     var string = first_row[i]["text"];

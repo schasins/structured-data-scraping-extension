@@ -14,7 +14,7 @@ function ParameterizedTrace(trace){
 				trace[i].target.xpath = {"name": parameter_name, "value": null};
 			}
 		}
-	}
+	};
 
 	this.useXpath = function(parameter_name, value) {
 		for (var i = 0; i< trace.length; i++){
@@ -25,7 +25,7 @@ function ParameterizedTrace(trace){
 				trace[i].target.xpath = {"name": parameter_name, "value": value};
 			}
 		}
-	}
+	};
 	
 	/* user-typed string parameterization */
 	
@@ -59,7 +59,7 @@ function ParameterizedTrace(trace){
 				curr_string_chars = [];
 			}
 		}
-	}
+	};
 	
 	function processString(parameter_name, original_string, string, char_indexes){
 		var original_string_initial_case = original_string;
@@ -69,8 +69,8 @@ function ParameterizedTrace(trace){
 		if (orig_i > -1){
 			//we've found the target string in the typed text, must param
 			var one_key_start_index = char_indexes[orig_i];
-			var post_char_index = char_indexes[orig_i+original_string.length - 1]
-			+ char_indexes[orig_i+1] - char_indexes[orig_i];
+			var post_char_index = char_indexes[orig_i + original_string.length - 1] + 
+				char_indexes[orig_i+1] - char_indexes[orig_i];
 			var text_input_event = null;
 			for (var i = one_key_start_index; i++ ; i < post_char_index){
 				var event = trace[i];
@@ -99,18 +99,18 @@ function ParameterizedTrace(trace){
 				event["value"] = string;
 			}
 		}
-	}
+	};
 	
 	
 	/* frame parameterization */
 	
 	this.parameterizeFrame = function(parameter_name, original_value) {
 		frames[parameter_name] = {original_value: original_value};
-	}
+	};
 
 	this.useFrame = function(parameter_name, value) {
 		frames[parameter_name]["value"] = value;
-	}
+	};
 	
 	//TODO tabs: create a parameterize on frame or tab.  not yet sure which
 	//we'll be using it for cases where a demonstration does something on a list page
@@ -162,7 +162,7 @@ function ParameterizedTrace(trace){
 			}
 		}
 		return cloned_trace;
-	}
+	};
 	
 	this.getConfig = function(){
 		console.log("frames", frames);
@@ -173,5 +173,5 @@ function ParameterizedTrace(trace){
 		}
 		console.log("config", config);
 		return config;
-	}
+	};
 }
