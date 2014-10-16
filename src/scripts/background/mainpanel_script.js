@@ -177,11 +177,11 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
     //if this list is the first program component, tab should always be same
     //otherwise we should be getting it from the previous demo, because
     //when first recorded, we should have figured out which demo events overlapped with the list page's tab
-    utilities.sendMessage("mainpanel", "content", "getNextPage", data, program_list.frame_id);
+    utilities.sendMessage("mainpanel", "content", "getNextPage", data, [program_list.frame_id]);
   }
   lrd.skip_next = false;
   //TODO tabs: send this to the right tab (not frame), not just any old tab
-  utilities.sendMessage("mainpanel", "content", "getMoreItems", data, program_list.frame_id);
+  utilities.sendMessage("mainpanel", "content", "getMoreItems", data, [program_list.frame_id]);
   waiting_for_items = true;
   return wait;
 }
@@ -424,7 +424,7 @@ function processSelectorAndListData(data){
   if (current_list === null){ return; }
   //now that we have data from a given tab, assume we're collecting the list only in that tab
   current_list["frame_id"] = data["frame_id"];
-  utilities.sendMessage("mainpanel", "content", "stopProcessingList", "", current_list["frame_id"], false);
+  utilities.sendMessage("mainpanel", "content", "stopProcessingList", "", [], [current_list["frame_id"]]);
   //store the new selector with the program's list object
   current_list["selector"] = data["selector"];
   //display the list so the user gets feedback
@@ -447,7 +447,7 @@ function processNextButtonData(data){
   if (current_list === null){ return; }
   //now that we have data from a given tab, assume we're collecting the list only in that tab
   current_list["frame_id"] = data["frame_id"];
-  utilities.sendMessage("mainpanel", "content", "stopProcessingList", "", current_list["frame_id"], false);
+  utilities.sendMessage("mainpanel", "content", "stopProcessingList", "", [], [current_list["frame_id"]]);
   //store the next button data with the program's list object
   var next_button_data = current_list["next_button_data"];
   //keys should be tag, text, id, and xpath
