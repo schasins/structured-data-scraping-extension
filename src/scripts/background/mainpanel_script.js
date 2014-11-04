@@ -204,7 +204,6 @@ function moreItems(data){
       //let's try again
       //just set skip_next true again so that runListGetNextItem won't try to press next
       lrd.skip_next = true; 
-      waiting_for_items = false;
     }
     else{
       lrd.current_items = data.items;

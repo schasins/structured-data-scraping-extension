@@ -7,7 +7,6 @@ utilities.listenForMessage = function(from, to, subject, fn){
       if (msg.from && (msg.from === from) && 
         msg.subject && (msg.subject === subject)) {
         msg.content.tab_id = sender.tab.id;
-        console.log("sender: ", sender);
         console.log("Receiving message: ", msg);
       fn(msg.content);
     }
