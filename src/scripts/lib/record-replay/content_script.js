@@ -423,7 +423,9 @@ function simulate(events, startIndex) {
     }
 
     if (params.replay.highlightTarget) {
-      highlightNode(target, 100);
+      if (["blur","focus"].indexOf(eventName) === -1){
+        highlightNode(target, 100);
+      }
     }
         
 	//additional handlers should run in replay only if ran in record

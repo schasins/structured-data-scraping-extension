@@ -1,12 +1,13 @@
 var utilities = {};
 
-utilities.listenForMessage = function(from, to, subject,fn){
+utilities.listenForMessage = function(from, to, subject, fn){
   console.log("Listening for messages: "+ from+" : "+to+" : "+subject);
   if (to === "background" || to === "mainpanel"){
     chrome.runtime.onMessage.addListener(function(msg, sender) {
       if (msg.from && (msg.from === from) && 
         msg.subject && (msg.subject === subject)) {
-        msg.tab_id = sender.tab.id;
+        msg.content.tab_id = sender.tab.id;
+        console.log("sender: ", sender);
         console.log("Receiving message: ", msg);
       fn(msg.content);
     }
@@ -37,19 +38,21 @@ utilities.sendMessage = function(from, to, subject, content, frame_ids_include, 
     var msg = {from: from, subject: subject, content: content, frame_ids_include: frame_ids_include, frame_ids_exclude: frame_ids_exclude};
     console.log("Sending message: ", msg);
     if (tab_ids_include){
-      console.log("(Sending to "+tab_ids_include.length+" tabs.)");
       for (var i =0; i<tab_ids_include.length; i++){
         chrome.tabs.sendMessage(tab_ids_include[i], msg); 
       } 
+      console.log("(Sent to "+tab_ids_include.length+" tabs.)");
     }
     else{
-      chrome.tabs.query({windowType: "normal"}, function(tabs){
-        console.log("(Sending to "+tabs.length+" tabs.)");
-        for (var i =0; i<tabs.length; i++){
-          if (!(tab_ids_exclude && tab_ids_exclude.indexOf(tabs[i]) > 1)){
-            chrome.tabs.sendMessage(tabs[i].id, msg); 
+        chrome.tabs.query({windowType: "normal"}, function(tabs){
+          tabs_messaged = 0;
+          for (var i =0; i<tabs.length; i++){
+            if (!(tab_ids_exclude && tab_ids_exclude.indexOf(tabs[i].id) > -1)){
+              chrome.tabs.sendMessage(tabs[i].id, msg); 
+              tabs_messaged ++;
+            }
           }
-        }
+          console.log("(Sent to "+tabs_messaged+" tabs.)");
       });
     }
   }
