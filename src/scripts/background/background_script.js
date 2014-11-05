@@ -40,6 +40,7 @@ var currently_on = false;
   //openMainPanel();
   
   utilities.listenForMessage("content", "background", "requestCurrentlyOn",function(){utilities.sendMessage("background","content","currentlyOn", currently_on);});
+  utilities.listenForMessage("content", "background", "requestTabID",function(msg){utilities.sendMessage("background","content","tabID", msg.tab_id,null,null,[msg.tab_id]);});
   
 })();
 

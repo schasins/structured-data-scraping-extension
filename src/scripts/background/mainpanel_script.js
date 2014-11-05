@@ -115,7 +115,7 @@ function runList(remaining_program, row_so_far){
 }
 
 function runListLoop(curr_program,new_remaining_program,row_so_far){
-  //console.log("runListLoop");
+  console.log("runListLoop");
   //console.log(row_so_far);
   var item = runListGetNextItem(curr_program);
   if (item === null){
@@ -145,6 +145,7 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
  var waiting_for_items = false;
 
  function runListGetNextItem(program_list){
+  console.log("runListGetNextItem");
   //if we've passed the item limit, we're done
   if (lrd.total_counter >= (program_list.item_limit)){
     return null;
@@ -158,7 +159,7 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
     lrd.total_counter++;
     return ret;
   }
-  //we haven't yet retireved any items, or we've run out
+  //we haven't yet retrieved any items, or we've run out
   
   //if we can't find more, we're done
   if (lrd.no_more_items){
@@ -187,6 +188,7 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
 }
 
 function moreItems(data){
+  console.log("moreItems");
   if (!waiting_for_items){
     return;
   }
@@ -317,6 +319,7 @@ function doneRecording(){
   current_demonstration["first_row_elems"] = _.pluck(items, "text");
   first_row.concat(items);
   
+  console.log("trace", trace);
   console.log("trace", _.filter(trace, function(obj){return obj.type === "dom";}));
   current_demonstration = null;
   programView();

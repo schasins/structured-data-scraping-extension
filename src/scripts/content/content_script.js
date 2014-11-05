@@ -38,6 +38,10 @@
   //utilities.sendMessage("content", "mainpanel", "nextButtonData", data);
   //utilities.sendMessage("content", "mainpanel", "moreItems", moreItems;
   //utilities.sendMessage("content", "mainpanel", "capturedData", data);
+
+  //for debugging purposes, print this tab's tab id
+  utilities.listenForMessage("background", "content", "tabID", function(msg){console.log("tab id: ", msg);});
+  utilities.sendMessage("content", "background", "requestTabID", {});
 }
 
 $(setUp);
@@ -578,6 +582,9 @@ function getMoreItems(data){
     else{
       send_not_done(list_so_far);
     }
+  }
+  else{
+    console.log("Failure.  Don't know how to produce items because don't know next button type.");
   }
 }
 

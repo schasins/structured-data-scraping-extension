@@ -412,7 +412,7 @@ var Replay = (function ReplayClosure() {
 
   Replay.prototype = {
     replayableEvents: {
-      dom: 'simulateDomEvent',
+      dom: 'simulateDomEvent'
     },
     addonReset: [],
     addonTiming: [],
@@ -734,6 +734,7 @@ var Replay = (function ReplayClosure() {
     },
     /* Given an event, find the corresponding port */
     getMatchingPort: function _getMatchingPort(v) {
+      console.log("_getMatchingPort: ",v);
       var portMapping = this.portMapping;
       var tabMapping = this.tabMapping;
 
@@ -783,6 +784,7 @@ var Replay = (function ReplayClosure() {
         if (this.firstEventReplayed && unusedTabs.length == 1) {
           tabMapping[frame.tab] = unusedTabs[0];
           this.setNextTimeout(0);
+          console.log("Exactly one unmapped.");
           return;
         }
 
@@ -804,26 +806,62 @@ var Replay = (function ReplayClosure() {
         /* automatically open up a new tab for the first event */
         if (!this.firstEventReplayed && params.replay.openNewTab) {
           openNewTab();
-        /* ask the user if the page exists, or a new tab should be opened */
-        } else {
-          var prompt = 'Does the page exist? If so select the tab then type ' +
-                       "'yes'. Else type 'no'.";
-          var user = this.user;
-          user.question(prompt, yesNoCheck, 'no', function(answer) {
-            if (answer == 'no') {
-              openNewTab();
-            } else if (answer == 'yes') {
-              var tabInfo = user.getActivatedTab();
-              chrome.tabs.get(tabInfo.tabId, function(tab) {
-                replayLog.log('mapping tab:', tab);
-                var tabId = tab.id;
-                replay.tabMapping[frame.tab] = tabId;
-                replay.setNextTimeout(0);
-              });
-            }
-          });
         }
+
+        //High level goal here:
+        //Check this.events against this.record.events for a load in the same position in the trace
+        //we want to look back through this.events (the events to replay) for an event of type
+        //'completed' that has the same frame as the one we're trying to replay to now
+        //then look through this.record.events (the events we've actually seen) for a corresponding
+        //'completed' event.  Whatever port that one had, use it.  And update the port mapping.
+        //Basically we're using when tabs appear as a way to line them up, build the mapping.
+
+        var recordTimeEvents = this.events;
+        var replayTimeEventsSoFar = this.record.events;
+        var currEventURL = v.frame.URL;
+        var currEventTabID = v.frame.tab;
+        var currEventIndex = this.index;
+
+        for (var i = currEventIndex-1; i >= 0; i--){
+          var e = recordTimeEvents[i];
+          var completedCounter = 0;
+          if (e.type === "completed"){
+            completedCounter++;
+            if (e.data.url === currEventURL && e.data.tabId === currEventTabID){
+              /* there's a record-time load event with the same url and tab id as 
+              the event whose frame we're currently trying to find.
+              we can try lining up this load event with a load event in the current run */
+              var completedCounterReplay = 0;
+              for (var j = replayTimeEventsSoFar.length - 1; j >= 0; j--){
+                var e2 = replayTimeEventsSoFar[j];
+                if (e2.type === "completed"){
+                  completedCounterReplay++;
+                  if (completedCounter === completedCounterReplay){
+                    //this is the replay-time completed event that lines up with e
+                    //use the frame in which this completed event happened
+                    //fix up ports
+                    //var e2Frame = ??;
+                    //var ports = this.ports;
+                    //var replayPort = ports.getPort(e2Frame);
+                    //portMapping[port] = replayPort;
+                    //return replayPort;
+
+                    tabMapping[currEventTabID] = e2.data.tabId;
+                    this.setNextTimeout(0);
+                    console.log("Using loading time data to make tab mapping.");
+                    return;
+                  }
+                }
+              }
+            }
+          }
+        }
+
       }
+      if (!replayPort){
+        console.log("Freak out.  We don't know what port to use to replay this event.");
+      }
+      console.log(replayPort);
       return replayPort;
     },
     /* Given the frame information from the recorded trace, find a 
@@ -1366,6 +1404,7 @@ function addWebRequestEvent(details, type) {
   data.requestId = details.requestId;
   data.method = details.method;
   data.parentFrameId = details.parentFrameId;
+  data.tabId = details.tabId;
   data.tabId = details.tabId;
   data.type = details.type;
   data.url = details.url;
