@@ -42,7 +42,11 @@
   //utilities.sendMessage("content", "mainpanel", "capturedData", data);
 
   //for debugging purposes, print this tab's tab id
+<<<<<<< HEAD
   utilities.listenForMessage("background", "content", "tabID", function(msg){tabID = msg; console.log("tab id: ", msg);});
+=======
+  utilities.listenForMessage("background", "content", "tabID", function(msg){console.log("tab id: ", msg);});
+>>>>>>> 290219cafbcbf1451bf8cb16a246d6e3115234f8
   utilities.sendMessage("content", "background", "requestTabID", {});
 }
 
