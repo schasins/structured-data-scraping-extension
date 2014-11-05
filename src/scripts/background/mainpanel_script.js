@@ -110,21 +110,24 @@ function replayCallback(replay_object){
   runHelper(rd.remaining_program,new_row_so_far.concat(texts));
 }
 
-var lrd = {"current_items": [], "counter": 0, "total_counter": 0, "no_more_items": false, "type": null, "skip_next": true}; //list retrieval data
+var lrd;
 
 function runList(remaining_program, row_so_far){
   console.log("runList");
   console.log(row_so_far);
   var curr_program = remaining_program[0];
   var new_remaining_program = remaining_program.slice(1);
-  lrd = {"current_items": [], "counter": 0, "total_counter": 0, "no_more_items": false, "type": curr_program.next_button_data.type, "skip_next": true};
+  //set up all the list retrieval data
+  curr_program.lrd = {"current_items": [], "counter": 0, "total_counter": 0, "no_more_items": false, "type": curr_program.next_button_data.type, "skip_next": true};
   runListLoop(curr_program,new_remaining_program,row_so_far);
 }
 
 function runListLoop(curr_program,new_remaining_program,row_so_far){
   console.log("runListLoop");
   console.log(row_so_far);
+  lrd = curr_program.lrd;
   var item = runListGetNextItem(curr_program);
+  console.log("item ", item);
   if (item === null){
     //loop is done
     //all the rows for this (possibly nested) loop are done, but may have more rows for an outer loop
@@ -139,7 +142,7 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
     var new_row_so_far = row_so_far.slice(0); //copy
     new_row_so_far = new_row_so_far.concat(item);
     //go on to next row once we finish the current row
-    stack.push(function(){runListLoop(curr_program,new_remaining_program,row_so_far);});
+    stack.push(function(){console.log("about to do a stored on stack call", curr_program, new_remaining_program, row_so_far); runListLoop(curr_program,new_remaining_program,row_so_far);});
     //run the rest of the program for this row
     runHelper(new_remaining_program,new_row_so_far);
     console.log("returned from runListLoop runHelper call.");
