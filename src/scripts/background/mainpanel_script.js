@@ -40,12 +40,15 @@ function run(){
   runHelper(program,[]);
 }
 
-function runHelper(remaining_program, row_so_far){
-  //console.log("runHelper");
-  //console.log(row_so_far);
+function runHelper(remaining_program, row_so_far, push_results){
+  console.log("runHelper");
+  console.log(row_so_far);
+  if (typeof push_results === 'undefined') push_results = true;
   if (remaining_program.length === 0){
-    results.push(row_so_far);
-    resultsView();
+    if (push_results){
+      results.push(row_so_far);
+      resultsView();
+    }
     if (stack.length > 0){
       var next_func = stack[stack.length - 1];
       stack = stack.slice(0,stack.length-1);
@@ -92,13 +95,17 @@ SimpleRecord.replay(standard_trace, config, replayCallback);
 }
 
 function replayCallback(replay_object){
-  //console.log("replayCallback");
-  //console.log(rd["row_so_far"]);
-  //console.log("replayObject", replay_object);
+  console.log("replayCallback");
+  console.log(rd["row_so_far"]);
+  console.log("replayObject", replay_object);
   var trace = replay_object.record.events;
   var new_row_so_far = rd.row_so_far;
   var replay_trace = replay_object.record.events;
   var texts = capturesFromTrace(replay_trace);
+  if (rd.remaining_program.length > 0){
+    var nextList = rd.remaining_program[0];
+    nextList.previous_trace = replay_trace;
+  }
   //var items = _.map(texts, function(a){return {"text": a};});
   runHelper(rd.remaining_program,new_row_so_far.concat(texts));
 }
@@ -106,8 +113,8 @@ function replayCallback(replay_object){
 var lrd = {"current_items": [], "counter": 0, "total_counter": 0, "no_more_items": false, "type": null, "skip_next": true}; //list retrieval data
 
 function runList(remaining_program, row_so_far){
-  //console.log("runList");
-  //console.log(row_so_far);
+  console.log("runList");
+  console.log(row_so_far);
   var curr_program = remaining_program[0];
   var new_remaining_program = remaining_program.slice(1);
   lrd = {"current_items": [], "counter": 0, "total_counter": 0, "no_more_items": false, "type": curr_program.next_button_data.type, "skip_next": true};
@@ -115,12 +122,13 @@ function runList(remaining_program, row_so_far){
 }
 
 function runListLoop(curr_program,new_remaining_program,row_so_far){
-  //console.log("runListLoop");
-  //console.log(row_so_far);
+  console.log("runListLoop");
+  console.log(row_so_far);
   var item = runListGetNextItem(curr_program);
   if (item === null){
     //loop is done
-    return;
+    //all the rows for this (possibly nested) loop are done, but may have more rows for an outer loop
+    runHelper([],[],false);
   }
   else if (item === wait){
     //need to keep looping, but waiting for content script to respond
@@ -134,6 +142,7 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
     stack.push(function(){runListLoop(curr_program,new_remaining_program,row_so_far);});
     //run the rest of the program for this row
     runHelper(new_remaining_program,new_row_so_far);
+    console.log("returned from runListLoop runHelper call.");
   }
 }
 
@@ -145,6 +154,7 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
  var waiting_for_items = false;
 
  function runListGetNextItem(program_list){
+  console.log("runListGetNextItem");
   //if we've passed the item limit, we're done
   if (lrd.total_counter >= (program_list.item_limit)){
     return null;
@@ -158,7 +168,7 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
     lrd.total_counter++;
     return ret;
   }
-  //we haven't yet retireved any items, or we've run out
+  //we haven't yet retrieved any items, or we've run out
   
   //if we can't find more, we're done
   if (lrd.no_more_items){
@@ -172,21 +182,32 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
   var data = {"selector": program_list.selector,
   "next_button_data": program_list.next_button_data,
   "item_limit": program_list.item_limit};
+
+  var tab_id = program_list.tab_info.id;
+  if (typeof program_list.tab_info.completed_index != 'undefined'){
+    var trace = program_list.previous_trace;
+    var completed_events = _.filter(trace, function(event){return event.type === "completed";});
+    var tabIDs = _.map(completed_events, function(event){return event.data.tabId});
+    console.log("Trying to use completed index: "+ program_list.tab_info.completed_index);
+    tab_id = tabIDs[program_list.tab_info.completed_index];
+  }
+
   if (data.next_button_data.type === "next_button" && !lrd.skip_next){
     //TODO tabs: send this to the right tab (not frame), not just any old tab
     //if this list is the first program component, tab should always be same
     //otherwise we should be getting it from the previous demo, because
     //when first recorded, we should have figured out which demo events overlapped with the list page's tab
-    utilities.sendMessage("mainpanel", "content", "getNextPage", data, null, null, [program_list.tab_id]);
+    utilities.sendMessage("mainpanel", "content", "getNextPage", data, null, null, [tab_id]);
   }
   lrd.skip_next = false;
   //TODO tabs: send this to the right tab (not frame), not just any old tab
-  utilities.sendMessage("mainpanel", "content", "getMoreItems", data, null, null, [program_list.tab_id]);
+  utilities.sendMessage("mainpanel", "content", "getMoreItems", data, null, null, [tab_id]);
   waiting_for_items = true;
   return wait;
 }
 
 function moreItems(data){
+  console.log("moreItems");
   if (!waiting_for_items){
     return;
   }
@@ -273,7 +294,7 @@ function arrayOfArraysToTable(arrayOfArrays){
  var current_demonstration = null;
 
  function startProcessingDemonstration(){
-   current_demonstration = {"type": "demonstration", "first_row_elems": [], "parameterized_trace": []};
+   current_demonstration = {"type": "demonstration", "first_row_elems": [], "parameterized_trace": [], "original_trace": []};
    program.push(current_demonstration);
 
    var div = $("#result_table_div");
@@ -293,6 +314,7 @@ function arrayOfArraysToTable(arrayOfArrays){
 function doneRecording(){
   var trace = SimpleRecord.stopRecording();
   trace = sanitizeTrace(trace);
+  current_demonstration.original_trace = trace;
   current_demonstration.parameterized_trace = new ParameterizedTrace(trace);
   
   //TODO tabs: also get the recent_list's tab or frame ids, parameterize on that
@@ -317,6 +339,7 @@ function doneRecording(){
   current_demonstration["first_row_elems"] = _.pluck(items, "text");
   first_row.concat(items);
   
+  console.log("trace", trace);
   console.log("trace", _.filter(trace, function(obj){return obj.type === "dom";}));
   current_demonstration = null;
   programView();
@@ -389,7 +412,7 @@ var current_list = null;
 var tab_id = null;
 
 function startProcessingList(){
-	current_list = {"type": "list", "selector": {}, "next_button_data": {}, "item_limit": 100000, "demo_list":[], "first_row_elems": [], "first_xpaths": [], "tab_id": null};
+	current_list = {"type": "list", "selector": {}, "next_button_data": {}, "item_limit": 100000, "demo_list":[], "first_row_elems": [], "first_xpaths": [], "tab_info":{}};
 	program.push(current_list);
 	utilities.sendMessage("mainpanel", "content", "startProcessingList", "");
 	var div = $("#result_table_div");
@@ -405,6 +428,19 @@ function startProcessingList(){
 
 function stopProcessingList(){
 	if (current_list["first_items"]){first_row = first_row.concat(current_list["first_items"]);}
+  // if current_list.tab_id appears in the previous demonstration's events anywhere, 
+  // must find the correct tab in the replay-time events at replay-time
+  if (program.length > 1){
+    var tabID = current_list.tab_info.id;
+    var prev_demo = program[program.length-2];
+    var trace = prev_demo.original_trace;
+    var completed_events = _.filter(trace, function(event){return event.type === "completed";});
+    var tabIDs = _.map(completed_events, function(event){return event.data.tabId});
+    if (tabIDs.indexOf(tabID) > -1){
+      console.log("looks as though we'll use completed index: "+tabIDs.indexOf(tabID));
+      current_list.tab_info.completed_index = tabIDs.indexOf(tabID);
+    }
+  }
 	current_list = null;
 	utilities.sendMessage("mainpanel", "content", "stopProcessingList", "");
 	programView();
@@ -422,8 +458,8 @@ function cancelProcessingList(){
 function processSelectorAndListData(data){
   if (current_list === null){ return; }
   //now that we have data from a given tab, assume we're collecting the list only in that tab
-  current_list["tab_id"] = data["tab_id"];
-  utilities.sendMessage("mainpanel", "content", "stopProcessingList", "", null, null, null, [current_list["tab_id"]]);
+  current_list.tab_info.id = data.tab_id;
+  utilities.sendMessage("mainpanel", "content", "stopProcessingList", "", null, null, null, [data.tab_id]);
   //store the new selector with the program's list object
   current_list["selector"] = data["selector"];
   //display the list so the user gets feedback
@@ -445,8 +481,8 @@ function processSelectorAndListData(data){
 function processNextButtonData(data){
   if (current_list === null){ return; }
   //now that we have data from a given tab, assume we're collecting the list only in that tab
-  current_list["tab_id"] = data["tab_id"];
-  utilities.sendMessage("mainpanel", "content", "stopProcessingList", "", [], [current_list["tab_id"]]);
+  current_list.tab_info.id = data.tab_id;
+  utilities.sendMessage("mainpanel", "content", "stopProcessingList", "", null, null, null, [data.tab_id]);
   //store the next button data with the program's list object
   var next_button_data = current_list["next_button_data"];
   //keys should be tag, text, id, and xpath

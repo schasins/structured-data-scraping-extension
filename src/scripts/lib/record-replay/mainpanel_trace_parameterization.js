@@ -169,7 +169,7 @@ function ParameterizedTrace(trace){
 		var config = {};
 		config["frameMapping"] = {};
 		for (var param in frames){
-			config["frameMapping"][frames[param]["original_value"]] = frames[param]["value"];
+			config["frameMapping"][frames[param]["value"]] = frames[param]["original_value"];
 		}
 		console.log("config", config);
 		return config;

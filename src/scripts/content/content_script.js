@@ -10,6 +10,8 @@
  var processing_next_button = false;
  var processing_capture = false;
 
+ var tabID = "setme";
+
  function off(){
    return !(processing_list || processing_next_button || processing_capture);
  }
@@ -38,6 +40,10 @@
   //utilities.sendMessage("content", "mainpanel", "nextButtonData", data);
   //utilities.sendMessage("content", "mainpanel", "moreItems", moreItems;
   //utilities.sendMessage("content", "mainpanel", "capturedData", data);
+
+  //for debugging purposes, print this tab's tab id
+  utilities.listenForMessage("background", "content", "tabID", function(msg){tabID = msg; console.log("tab id: ", msg);});
+  utilities.sendMessage("content", "background", "requestTabID", {});
 }
 
 $(setUp);
@@ -578,6 +584,9 @@ function getMoreItems(data){
     else{
       send_not_done(list_so_far);
     }
+  }
+  else{
+    console.log("Failure.  Don't know how to produce items because don't know next button type.");
   }
 }
 
