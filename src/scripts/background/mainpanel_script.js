@@ -220,6 +220,8 @@ function runListLoop(curr_program, program, index, row_so_far){
   return wait;
 }
 
+var next_button_tries = 0;
+
 function moreItems(data){
   console.log("moreItems");
   if (!lrd.waiting_for_items){
@@ -239,8 +241,16 @@ function moreItems(data){
       //let's try again
       //just set skip_next true again so that runListGetNextItem won't try to press next
       lrd.skip_next = true; 
+      next_button_tries += 1;
+      if (next_button_tries > 50){
+        //we've tried 50 times to get the next button to work, and it's still not working
+        //time to assume it's the end of the list (sometimes there's a button that 
+        //looks like a next button but is grayed out, that sort of thing)
+        lrd.no_more_items = true;
+      }
     }
     else{
+      next_button_tries = 0;
       lrd.current_items = data.items;
       lrd.counter = 0;
       lrd.no_more_items = data.no_more_items;
