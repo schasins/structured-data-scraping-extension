@@ -37,14 +37,14 @@ var stack = [];
 function run(){
   results = [];
   stack = [];
-  runHelper(program,[]);
+  runHelper(program, 0, []);
 }
 
-function runHelper(remaining_program, row_so_far, push_results){
+function runHelper(program, index, row_so_far, push_results){
   console.log("runHelper");
   console.log(row_so_far);
   if (typeof push_results === 'undefined') push_results = true;
-  if (remaining_program.length === 0){
+  if (program.length === index){
     if (push_results){
       results.push(row_so_far);
       resultsView();
@@ -56,23 +56,22 @@ function runHelper(remaining_program, row_so_far, push_results){
     }
     return;
   }
-  var prog_item = remaining_program[0];
+  var prog_item = program[index];
   if (prog_item.type === "list"){
-    runList(remaining_program, row_so_far);
+    runList(program, index, row_so_far);
   }
   else if (prog_item.type === "demonstration"){
-    runDemonstration(remaining_program, row_so_far);
+    runDemonstration(program, index, row_so_far);
   }
 }
 
-var rd = {"remaining_program": null, "row_so_far": null}; //replay data
+var rd = {"program": null, "index": null, "row_so_far": null}; //replay data
 
-function runDemonstration(remaining_program, row_so_far){
+function runDemonstration(program, index, row_so_far){
   console.log("runDemonstration");
   console.log(row_so_far);
-  var curr_program = remaining_program[0];
-  var new_remaining_program = remaining_program.slice(1);
-  rd = {"remaining_program": new_remaining_program, "row_so_far": row_so_far};
+  var curr_program = program[index];
+  rd = {"program": program, "index": index, "row_so_far": row_so_far};
   var parameterized_trace = curr_program.parameterized_trace;
   
   for (var i = 0; i < row_so_far.length; i++){
@@ -102,49 +101,45 @@ function replayCallback(replay_object){
   var new_row_so_far = rd.row_so_far;
   var replay_trace = replay_object.record.events;
   var texts = capturesFromTrace(replay_trace);
-  if (rd.remaining_program.length > 0){
-    var nextList = rd.remaining_program[0];
-    nextList.previous_trace = replay_trace;
-  }
+  rd.program[rd.index].most_recent_trace = replay_trace;
   //var items = _.map(texts, function(a){return {"text": a};});
-  runHelper(rd.remaining_program,new_row_so_far.concat(texts));
+  runHelper(rd.program, rd.index + 1, new_row_so_far.concat(texts));
 }
 
 var lrd;
 
-function runList(remaining_program, row_so_far){
+function runList(program, index, row_so_far){
   console.log("runList");
   console.log(row_so_far);
-  var curr_program = remaining_program[0];
-  var new_remaining_program = remaining_program.slice(1);
+  var curr_program = program[index];
   //set up all the list retrieval data
   curr_program.lrd = {current_items: [], counter: 0, total_counter: 0, no_more_items: false, type: curr_program.next_button_data.type, skip_next: true, waiting_for_items: false};
-  runListLoop(curr_program,new_remaining_program,row_so_far);
+  runListLoop(curr_program, program, index, row_so_far);
 }
 
-function runListLoop(curr_program,new_remaining_program,row_so_far){
+function runListLoop(curr_program, program, index, row_so_far){
   console.log("runListLoop");
   console.log(row_so_far);
   lrd = curr_program.lrd;
-  var item = runListGetNextItem(curr_program);
+  var item = runListGetNextItem(curr_program, program, index);
   console.log("item ", item);
   if (item === null){
     //loop is done
     //all the rows for this (possibly nested) loop are done, but may have more rows for an outer loop
-    runHelper([],[],false);
+    runHelper([],0,[],false);
   }
   else if (item === wait){
     //need to keep looping, but waiting for content script to respond
-    setTimeout(function(){runListLoop(curr_program,new_remaining_program,row_so_far);},500);
+    setTimeout(function(){runListLoop(curr_program, program, index, row_so_far);},500);
   }
   else {
     //we have a real item
     var new_row_so_far = row_so_far.slice(0); //copy
     new_row_so_far = new_row_so_far.concat(item);
     //go on to next row once we finish the current row
-    stack.push(function(){console.log("about to do a stored on stack call", curr_program, new_remaining_program, row_so_far); runListLoop(curr_program,new_remaining_program,row_so_far);});
+    stack.push(function(){console.log("about to do a stored on stack call"); runListLoop(curr_program, program, index, row_so_far);});
     //run the rest of the program for this row
-    runHelper(new_remaining_program,new_row_so_far);
+    runHelper(program, index+1, new_row_so_far);
     console.log("returned from runListLoop runHelper call.");
   }
 }
@@ -155,7 +150,7 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
 
  var wait = {"wait":"wait"};
 
- function runListGetNextItem(program_list){
+ function runListGetNextItem(program_list, program, index){
   console.log("runListGetNextItem");
   //if we've passed the item limit, we're done
   if (lrd.total_counter >= (program_list.item_limit)){
@@ -187,11 +182,11 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
 
   var tab_id = program_list.tab_info.id;
   if (typeof program_list.tab_info.completed_index != 'undefined'){
-    var trace = program_list.previous_trace;
-    var completed_events = _.filter(trace, function(event){return event.type === "completed";});
-    var tabIDs = _.map(completed_events, function(event){return event.data.tabId});
-    console.log("Trying to use completed index: "+ program_list.tab_info.completed_index);
+    var prog_element = program[program_list.tab_info.program_elment_index];
+    var trace = prog_element.most_recent_trace;
+    var tabIDs = openTabSequenceFromTrace(trace);
     tab_id = tabIDs[program_list.tab_info.completed_index];
+    console.log("Trying to use completed index: "+ program_list.tab_info.completed_index);
   }
 
   if (data.next_button_data.type === "next_button" && !lrd.skip_next){
@@ -436,19 +431,33 @@ function startProcessingList(){
 	div.find(".cancel").click(cancelProcessingList);
 }
 
+function openTabSequenceFromTrace(trace){
+  var completed_events = _.filter(trace, function(event){return event.type === "completed";});
+  var tabIDs = _.map(completed_events, function(event){return event.data.tabId});
+  return tabIDs;
+}
+
 function stopProcessingList(){
 	if (current_list["first_items"]){first_row = first_row.concat(current_list["first_items"]);}
   // if current_list.tab_id appears in the previous demonstration's events anywhere, 
   // must find the correct tab in the replay-time events at replay-time
   if (program.length > 1){
     var tabID = current_list.tab_info.id;
-    var prev_demo = program[program.length-2];
-    var trace = prev_demo.original_trace;
-    var completed_events = _.filter(trace, function(event){return event.type === "completed";});
-    var tabIDs = _.map(completed_events, function(event){return event.data.tabId});
-    if (tabIDs.indexOf(tabID) > -1){
-      console.log("looks as though we'll use completed index: "+tabIDs.indexOf(tabID));
-      current_list.tab_info.completed_index = tabIDs.indexOf(tabID);
+
+    //working backwards through the program's demonstrations, see if any of them opened
+    //the tab in which this list finding was completed
+    for (var i = program.length-2; i >= 0; i--){
+      var prog_element = program[i];
+      if (prog_element.type === "demonstration"){
+        var trace = prog_element.original_trace;
+        var tabIDs = openTabSequenceFromTrace(trace);
+        if (tabIDs.indexOf(tabID) > -1){
+          console.log("looks as though we'll use completed index: "+tabIDs.indexOf(tabID));
+          current_list.tab_info.program_elment_index = i;
+          current_list.tab_info.completed_index = tabIDs.indexOf(tabID);
+          break;
+        }
+      }
     }
   }
 	current_list = null;
