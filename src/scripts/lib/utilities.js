@@ -37,11 +37,12 @@ utilities.sendMessage = function(from, to, subject, content, frame_ids_include, 
   if ((from ==="background" || from ==="mainpanel") && to === "content"){
     var msg = {from: from, subject: subject, content: content, frame_ids_include: frame_ids_include, frame_ids_exclude: frame_ids_exclude};
     console.log("Sending message: ", msg);
+    console.log(tab_ids_include, tab_ids_exclude);
     if (tab_ids_include){
       for (var i =0; i<tab_ids_include.length; i++){
         chrome.tabs.sendMessage(tab_ids_include[i], msg); 
       } 
-      console.log("(Sent to "+tab_ids_include.length+" tabs.)");
+      console.log("(Sent to ", tab_ids_include.length, " tabs: ", tab_ids_include, " )");
     }
     else{
         chrome.tabs.query({windowType: "normal"}, function(tabs){

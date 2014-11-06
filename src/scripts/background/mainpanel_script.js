@@ -417,7 +417,15 @@ var tab_id = null;
 function startProcessingList(){
 	current_list = {"type": "list", "selector": {}, "next_button_data": {}, "item_limit": 100000, "demo_list":[], "first_row_elems": [], "first_xpaths": [], "tab_info":{}};
 	program.push(current_list);
-	utilities.sendMessage("mainpanel", "content", "startProcessingList", "");
+
+  //if we already know we only want to send to a particular tab, just alert that tab
+  if (typeof current_list.tab_info.id != "undefined"){
+    utilities.sendMessage("mainpanel", "content", "startProcessingList", "", null, null, [current_list.tab_info.id]);
+  }
+  else {
+    utilities.sendMessage("mainpanel", "content", "startProcessingList", "");
+  }
+
 	var div = $("#result_table_div");
 	div.html($("#new_list").html());
 	
@@ -500,7 +508,13 @@ function processNextButtonType(event){
   var next_button_type = $target.attr('id');
   current_list["next_button_data"]["type"] = next_button_type;
   if (next_button_type !== "scroll_for_more"){
-    utilities.sendMessage("mainpanel", "content", "startProcessingNextButton", "");
+    //if we already know we only want to send to a particular tab, just alert that tab
+    if (typeof current_list.tab_info.id != "undefined"){
+      utilities.sendMessage("mainpanel", "content", "startProcessingNextButton", "", null, null, [current_list.tab_info.id]);
+    }
+    else {
+      utilities.sendMessage("mainpanel", "content", "startProcessingNextButton", "");
+    }
     //TODO: Alter the user how the next click will be interpreted
   }
 }

@@ -228,6 +228,7 @@ function getAllCandidates(){
 
  function stopProcessingList(){
    processing_list = false;
+   processing_next_button = false;
 
   //dehighlight our old list
   highlight(current_selector_nodes,"initial");
