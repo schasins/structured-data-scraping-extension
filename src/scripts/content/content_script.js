@@ -54,7 +54,7 @@ utilities.sendMessage("content", "background", "requestTabID", {});
  function targetFromEvent(event){
   var $target = $(event.target);
   //if CTRL was pressed, we want not the table cell but the whole row
-  if (event.ctrlKey === 1){
+  if (event.ctrlKey){
     $ps = $target.closest("tr");
     if ($ps){ $target = $ps;}
   }
