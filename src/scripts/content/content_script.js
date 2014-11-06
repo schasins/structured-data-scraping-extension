@@ -16,37 +16,32 @@
    return !(processing_list || processing_next_button || processing_capture);
  }
 
- function setUp(){
+//messages received by this component
+utilities.listenForMessage("mainpanel", "content", "getMoreItems", getMoreItems);
+utilities.listenForMessage("mainpanel", "content", "getNextPage", getNextPage);
+utilities.listenForMessage("mainpanel", "content", "startProcessingList", startProcessingList);
+utilities.listenForMessage("mainpanel", "content", "stopProcessingList", stopProcessingList);
+utilities.listenForMessage("mainpanel", "content", "startProcessingNextButton", startProcessingNextButton);
+utilities.listenForMessage("mainpanel", "content", "startProcessingCapture", startProcessingCapture);
+utilities.listenForMessage("mainpanel", "content", "stopProcessingCapture", stopProcessingCapture);
 
-  //user event handling
-  document.addEventListener('mouseover', outline, true);
-  document.addEventListener('mouseout', unoutline, true);
-  document.addEventListener('keydown', outlineAdjustDown, true);
-  document.addEventListener('keyup', outlineAdjustUp, true);
-  document.addEventListener('click', listClick, true);
-  document.addEventListener('click', nextButtonClick, true);
-  
-  //messages received by this component
-  utilities.listenForMessage("mainpanel", "content", "startProcessingList", startProcessingList);
-  utilities.listenForMessage("mainpanel", "content", "stopProcessingList", stopProcessingList);
-  utilities.listenForMessage("mainpanel", "content", "startProcessingNextButton", startProcessingNextButton);
-  utilities.listenForMessage("mainpanel", "content", "getMoreItems", getMoreItems);
-  utilities.listenForMessage("mainpanel", "content", "getNextPage", getNextPage);
-  utilities.listenForMessage("mainpanel", "content", "startProcessingCapture", startProcessingCapture);
-  utilities.listenForMessage("mainpanel", "content", "stopProcessingCapture", stopProcessingCapture);
-  
-  //messages sent by this component
-  //utilities.sendMessage("content", "mainpanel", "selectorAndListData", data);
-  //utilities.sendMessage("content", "mainpanel", "nextButtonData", data);
-  //utilities.sendMessage("content", "mainpanel", "moreItems", moreItems;
-  //utilities.sendMessage("content", "mainpanel", "capturedData", data);
+//messages sent by this component
+//utilities.sendMessage("content", "mainpanel", "selectorAndListData", data);
+//utilities.sendMessage("content", "mainpanel", "nextButtonData", data);
+//utilities.sendMessage("content", "mainpanel", "moreItems", moreItems;
+//utilities.sendMessage("content", "mainpanel", "capturedData", data);
 
-  //for debugging purposes, print this tab's tab id
-  utilities.listenForMessage("background", "content", "tabID", function(msg){tabID = msg; console.log("tab id: ", msg);});
-  utilities.sendMessage("content", "background", "requestTabID", {});
-}
+//user event handling
+document.addEventListener('mouseover', outline, true);
+document.addEventListener('mouseout', unoutline, true);
+document.addEventListener('keydown', outlineAdjustDown, true);
+document.addEventListener('keyup', outlineAdjustUp, true);
+document.addEventListener('click', listClick, true);
+document.addEventListener('click', nextButtonClick, true);
 
-$(setUp);
+//for debugging purposes, print this tab's tab id
+utilities.listenForMessage("background", "content", "tabID", function(msg){tabID = msg; console.log("tab id: ", msg);});
+utilities.sendMessage("content", "background", "requestTabID", {});
 
 /**********************************************************************
  * Color guide to show users the node they're about to select

@@ -89,9 +89,9 @@ function runDemonstration(remaining_program, row_so_far){
   
   //TODO tabs: must adjust trace so that list-related items (and anything else
   //with the same unique frame id happens on our list page)
-var standard_trace = parameterized_trace.getStandardTrace();
-var config = parameterized_trace.getConfig();
-SimpleRecord.replay(standard_trace, config, replayCallback);
+  var standard_trace = parameterized_trace.getStandardTrace();
+  var config = parameterized_trace.getConfig();
+  SimpleRecord.replay(standard_trace, config, replayCallback);
 }
 
 function replayCallback(replay_object){
@@ -118,7 +118,7 @@ function runList(remaining_program, row_so_far){
   var curr_program = remaining_program[0];
   var new_remaining_program = remaining_program.slice(1);
   //set up all the list retrieval data
-  curr_program.lrd = {"current_items": [], "counter": 0, "total_counter": 0, "no_more_items": false, "type": curr_program.next_button_data.type, "skip_next": true};
+  curr_program.lrd = {current_items: [], counter: 0, total_counter: 0, no_more_items: false, type: curr_program.next_button_data.type, skip_next: true, waiting_for_items: false};
   runListLoop(curr_program,new_remaining_program,row_so_far);
 }
 
@@ -154,7 +154,6 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
  **********************************************************************/
 
  var wait = {"wait":"wait"};
- var waiting_for_items = false;
 
  function runListGetNextItem(program_list){
   console.log("runListGetNextItem");
@@ -178,7 +177,7 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
     return null;
   }
   //still waiting for items from the last call
-  if (waiting_for_items){
+  if (lrd.waiting_for_items){
     return wait;
   }
   //out of items and haven't yet asked for more
@@ -205,16 +204,16 @@ function runListLoop(curr_program,new_remaining_program,row_so_far){
   lrd.skip_next = false;
   //TODO tabs: send this to the right tab (not frame), not just any old tab
   utilities.sendMessage("mainpanel", "content", "getMoreItems", data, null, null, [tab_id]);
-  waiting_for_items = true;
+  lrd.waiting_for_items = true;
   return wait;
 }
 
 function moreItems(data){
   console.log("moreItems");
-  if (!waiting_for_items){
+  if (!lrd.waiting_for_items){
     return;
   }
-  waiting_for_items = false;
+  lrd.waiting_for_items = false;
   if (lrd.type !== "next_button"){
     //this was a 'more' button, not 'next' button, so these are all
     //the items we could get
