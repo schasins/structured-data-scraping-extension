@@ -70,6 +70,23 @@ var rd = {"program": null, "index": null, "row_so_far": null}; //replay data
 function runDemonstration(program, index, row_so_far){
   console.log("runDemonstration");
   console.log(row_so_far);
+
+  //let's start with cleanup.  if this is a demo at index 1, close all tabs
+  //opened so far since we'll never need them again
+  //somewhat hacky approach, but it'll do for now
+  var opened_tabs = [];
+  if (index === 1){
+    for (var i = 0; i < program.length; i++){
+      var prog_element = program[i];
+      if (prog_element.type === "demonstration"){
+        var trace = prog_element.most_recent_trace;
+        var tabIDs = openTabSequenceFromTrace(trace);
+        opened_tabs = opened_tabs.concat(tabIDs);
+      }
+    }
+  }
+  chrome.tabs.remove(opened_tabs);
+
   var curr_program = program[index];
   rd = {"program": program, "index": index, "row_so_far": row_so_far};
   var parameterized_trace = curr_program.parameterized_trace;
