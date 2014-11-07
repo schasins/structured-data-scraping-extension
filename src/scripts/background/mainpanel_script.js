@@ -135,7 +135,7 @@ function runList(program, index, row_so_far){
   console.log(row_so_far);
   var curr_program = program[index];
   //set up all the list retrieval data
-  curr_program.lrd = {current_items: [], counter: 0, total_counter: 0, no_more_items: false, type: curr_program.next_button_data.type, skip_next: true, waiting_for_items: false, next_button_tries: 0};
+  curr_program.lrd = {current_items: [], counter: 0, total_counter: 0, no_more_items: false, type: curr_program.next_button_data.type, skip_next: true, waiting_for_items: false, waiting_tries: 0, next_button_tries: 0};
   runListLoop(curr_program, program, index, row_so_far);
 }
 
@@ -197,8 +197,17 @@ function runListLoop(curr_program, program, index, row_so_far){
   }
   //still waiting for items from the last call
   if (lrd.waiting_for_items){
-    console.log("Still waiting for items.");
-    return wait;
+    if (lrd.waiting_tries <= 30){
+      console.log("Still waiting for items.");
+      lrd.waiting_tries += 1;
+      return wait;
+    }
+    else{
+      //we've been waiting a pretty long time
+      //seems like maybe the message didn't get through
+      console.log("Seems like the message maybe didn't get through.  Ask for more items.");
+      lrd.skip_next = true;
+    }
   }
 
   //out of items and haven't yet asked for more
@@ -227,6 +236,7 @@ function runListLoop(curr_program, program, index, row_so_far){
   console.log("Asking for more items.");
   utilities.sendMessage("mainpanel", "content", "getMoreItems", data, null, null, [tab_id]);
   lrd.waiting_for_items = true;
+  lrd.waiting_tries = 0;
   return wait;
 }
 
