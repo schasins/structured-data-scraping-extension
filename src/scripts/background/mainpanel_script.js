@@ -50,6 +50,7 @@ function runHelper(program, index, row_so_far, push_results){
       resultsView();
     }
     if (stack.length > 0){
+      console.log("Popping off the stack.");
       var next_func = stack[stack.length - 1];
       stack = stack.slice(0,stack.length-1);
       next_func();
@@ -134,7 +135,7 @@ function runList(program, index, row_so_far){
   console.log(row_so_far);
   var curr_program = program[index];
   //set up all the list retrieval data
-  curr_program.lrd = {current_items: [], counter: 0, total_counter: 0, no_more_items: false, type: curr_program.next_button_data.type, skip_next: true, waiting_for_items: false};
+  curr_program.lrd = {current_items: [], counter: 0, total_counter: 0, no_more_items: false, type: curr_program.next_button_data.type, skip_next: true, waiting_for_items: false, next_button_tries: 0};
   runListLoop(curr_program, program, index, row_so_far);
 }
 
@@ -175,6 +176,7 @@ function runListLoop(curr_program, program, index, row_so_far){
   console.log("runListGetNextItem");
   //if we've passed the item limit, we're done
   if (lrd.total_counter >= (program_list.item_limit)){
+    console.log("Collected enough data points.");
     return null;
   }
   
@@ -190,12 +192,15 @@ function runListLoop(curr_program, program, index, row_so_far){
   
   //if we can't find more, we're done
   if (lrd.no_more_items){
+    console.log("Can't find any more items.");
     return null;
   }
   //still waiting for items from the last call
   if (lrd.waiting_for_items){
+    console.log("Still waiting for items.");
     return wait;
   }
+
   //out of items and haven't yet asked for more
   var data = {"selector": program_list.selector,
   "next_button_data": program_list.next_button_data,
@@ -207,7 +212,6 @@ function runListLoop(curr_program, program, index, row_so_far){
     var trace = prog_element.most_recent_trace;
     var tabIDs = openTabSequenceFromTrace(trace);
     tab_id = tabIDs[program_list.tab_info.completed_index];
-    console.log("Trying to use completed index: "+ program_list.tab_info.completed_index);
   }
 
   if (data.next_button_data.type === "next_button" && !lrd.skip_next){
@@ -215,16 +219,16 @@ function runListLoop(curr_program, program, index, row_so_far){
     //if this list is the first program component, tab should always be same
     //otherwise we should be getting it from the previous demo, because
     //when first recorded, we should have figured out which demo events overlapped with the list page's tab
+    console.log("Trying to press next button.");
     utilities.sendMessage("mainpanel", "content", "getNextPage", data, null, null, [tab_id]);
   }
   lrd.skip_next = false;
   //TODO tabs: send this to the right tab (not frame), not just any old tab
+  console.log("Asking for more items.");
   utilities.sendMessage("mainpanel", "content", "getMoreItems", data, null, null, [tab_id]);
   lrd.waiting_for_items = true;
   return wait;
 }
-
-var next_button_tries = 0;
 
 function moreItems(data){
   console.log("moreItems");
@@ -245,16 +249,19 @@ function moreItems(data){
       //let's try again
       //just set skip_next true again so that runListGetNextItem won't try to press next
       lrd.skip_next = true; 
-      next_button_tries += 1;
-      if (next_button_tries > 30){
+      lrd.next_button_tries += 1;
+      console.log("Same old items.");
+      if (lrd.next_button_tries > 30){
         //we've tried 30 times to get the next button to work, and it's still not working
         //time to assume it's the end of the list (sometimes there's a button that 
         //looks like a next button but is grayed out, that sort of thing)
+        console.log("Tried the next button 30 times now, still no luck.  Give up.");
         lrd.no_more_items = true;
       }
     }
     else{
-      next_button_tries = 0;
+      console.log("New items.")
+      lrd.next_button_tries = 0;
       lrd.current_items = data.items;
       lrd.counter = 0;
       lrd.no_more_items = data.no_more_items;
