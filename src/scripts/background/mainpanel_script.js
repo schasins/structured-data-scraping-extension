@@ -54,6 +54,10 @@ function runHelper(program, index, row_so_far, push_results){
       stack = stack.slice(0,stack.length-1);
       next_func();
     }
+    else{
+      console.log("Stack empty.  Forcing data display.");
+      resultsView(true);
+    }
     return;
   }
   var prog_item = program[index];
@@ -282,13 +286,15 @@ function moreItems(data){
   div.append($(first_row_str));
 }
 
-function resultsView(){
-  //reduce CPU-boundedness by not doing this for each new row
-  var len = results.length;
-  if (len > 100 && len%100 !== 0){return;} 
-  if (len > 1000 && len%1000 !== 0){return;} 
-  if (len > 10000 && len%10000 !== 0){return;}
-  if (len > 100000 && len%100000 !== 0){return;}  
+function resultsView(force){
+  if (force != true){
+    //reduce CPU-boundedness by not doing this for each new row
+    var len = results.length;
+    if (len > 100 && len%100 !== 0){return;} 
+    if (len > 1000 && len%1000 !== 0){return;} 
+    if (len > 10000 && len%10000 !== 0){return;}
+    if (len > 100000 && len%100000 !== 0){return;}  
+  }
 
   var div = $("#result_table_div");
   div.html("");
