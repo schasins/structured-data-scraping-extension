@@ -13,8 +13,10 @@ var SimpleRecord = (function SimpleRecordClosure() {
       addonTarget.push(callback);
     },
     getFrameId: function _getFrameId() {
-      if (frameId == 'setme')
+      if (frameId == 'setme'){
+        console.log("frameId not set yet");
         return null;
+      }
         
       return frameId;
     },

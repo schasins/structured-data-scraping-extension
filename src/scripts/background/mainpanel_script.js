@@ -246,8 +246,8 @@ function moreItems(data){
       //just set skip_next true again so that runListGetNextItem won't try to press next
       lrd.skip_next = true; 
       next_button_tries += 1;
-      if (next_button_tries > 50){
-        //we've tried 50 times to get the next button to work, and it's still not working
+      if (next_button_tries > 30){
+        //we've tried 30 times to get the next button to work, and it's still not working
         //time to assume it's the end of the list (sometimes there's a button that 
         //looks like a next button but is grayed out, that sort of thing)
         lrd.no_more_items = true;

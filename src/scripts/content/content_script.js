@@ -555,6 +555,12 @@ function wholeListHelper(list_so_far, steps_since_progress, selector, item_limit
 }
 
 function getMoreItems(data){
+  //make sure we're set up before we try to send items back to the mainpanel
+  //sending items without the frame id will cause the script to fail
+  if (SimpleRecord.getFrameId() === null){
+    setTimeout(function(){getMoreItems(data);},500);
+  }
+
   var send_done = function(list){utilities.sendMessage("content", "mainpanel", "moreItems", {"items":list,"no_more_items":true});};
   var send_not_done = function(list){utilities.sendMessage("content", "mainpanel", "moreItems", {"items":list,"no_more_items":false});};
   
