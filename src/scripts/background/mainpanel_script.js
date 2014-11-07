@@ -283,6 +283,13 @@ function moreItems(data){
 }
 
 function resultsView(){
+  //reduce CPU-boundedness by not doing this for each new row
+  var len = results.length;
+  if (len > 100 && len%100 !== 0){return;} 
+  if (len > 1000 && len%1000 !== 0){return;} 
+  if (len > 10000 && len%10000 !== 0){return;}
+  if (len > 100000 && len%100000 !== 0){return;}  
+
   var div = $("#result_table_div");
   div.html("");
   var table = arrayOfArraysToTable(results);
