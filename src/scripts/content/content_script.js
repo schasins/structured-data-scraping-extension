@@ -559,6 +559,7 @@ function getMoreItems(data){
   //sending items without the frame id will cause the script to fail
   if (SimpleRecord.getFrameId() === null){
     setTimeout(function(){getMoreItems(data);},500);
+    return;
   }
 
   var send_done = function(list){utilities.sendMessage("content", "mainpanel", "moreItems", {"items":list,"no_more_items":true});};
