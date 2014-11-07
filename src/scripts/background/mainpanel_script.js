@@ -158,7 +158,7 @@ function runListLoop(curr_program, program, index, row_so_far){
     var new_row_so_far = row_so_far.slice(0); //copy
     new_row_so_far = new_row_so_far.concat(item);
     //go on to next row once we finish the current row
-    stack.push(function(){console.log("about to do a stored on stack call"); runListLoop(curr_program, program, index, row_so_far);});
+    stack.push(function(){setTimeout(function(){runListLoop(curr_program, program, index, row_so_far);},curr_program.wait);});
     //run the rest of the program for this row
     runHelper(program, index+1, new_row_so_far);
     console.log("returned from runListLoop runHelper call.");
@@ -449,7 +449,7 @@ var current_list = null;
 var tab_id = null;
 
 function startProcessingList(){
-	current_list = {"type": "list", "selector": {}, "next_button_data": {}, "item_limit": 100000, "demo_list":[], "first_row_elems": [], "first_xpaths": [], "tab_info":{}};
+	current_list = {"type": "list", "selector": {}, "next_button_data": {}, "item_limit": 100000, "wait": 0, "demo_list":[], "first_row_elems": [], "first_xpaths": [], "tab_info":{}};
 	program.push(current_list);
 
   //if we already know we only want to send to a particular tab, just alert that tab
@@ -466,6 +466,7 @@ function startProcessingList(){
 	div.find(".list").addClass("list-active"); //how we'll display list
 	div.find(".radio").click(processNextButtonType);
 	div.find(".itemLimit").on('input propertychange paste', processItemLimit);
+  div.find(".wait").on('input propertychange paste', processWait);
 	div.find(".buttonset").buttonset();
 	div.find(".done").click(stopProcessingList);
 	div.find(".cancel").click(cancelProcessingList);
@@ -572,4 +573,11 @@ function processItemLimit(event){
   var $target = $(event.target);
   var limit = $target.val();
   current_list["item_limit"] = parseInt(limit);
+}
+
+function processWait(event){
+  if (current_list === null){ return; }
+  var $target = $(event.target);
+  var wait = $target.val();
+  current_list["wait"] = parseInt(wait);
 }
