@@ -19,6 +19,7 @@ function setUp(){
   $("#start_list").click(startProcessingList);
   $("#start_demonstration").click(startProcessingDemonstration);
   $("#run").click(run);
+  $("#download_results").click(download);
   $("button").button();	
 }
 
@@ -32,9 +33,9 @@ var first_row = [];
  * Run the program
  **********************************************************************/
 
-var stack = [];
+ var stack = [];
 
-function run(){
+ function run(){
   results = [];
   stack = [];
   runHelper(program, 0, []);
@@ -110,9 +111,9 @@ function runDemonstration(program, index, row_so_far){
   
   //TODO tabs: must adjust trace so that list-related items (and anything else
   //with the same unique frame id happens on our list page)
-  var standard_trace = parameterized_trace.getStandardTrace();
-  var config = parameterized_trace.getConfig();
-  SimpleRecord.replay(standard_trace, config, replayCallback);
+var standard_trace = parameterized_trace.getStandardTrace();
+var config = parameterized_trace.getConfig();
+SimpleRecord.replay(standard_trace, config, replayCallback);
 }
 
 function replayCallback(replay_object){
@@ -265,18 +266,18 @@ function moreItems(data){
         //we've tried 30 times to get the next button to work, and it's still not working
         //time to assume it's the end of the list (sometimes there's a button that 
         //looks like a next button but is grayed out, that sort of thing)
-        console.log("Tried the next button 30 times now, still no luck.  Give up.");
-        lrd.no_more_items = true;
-      }
-    }
-    else{
-      console.log("New items.")
-      lrd.next_button_tries = 0;
-      lrd.current_items = data.items;
-      lrd.counter = 0;
-      lrd.no_more_items = data.no_more_items;
-    }
-  }
+console.log("Tried the next button 30 times now, still no luck.  Give up.");
+lrd.no_more_items = true;
+}
+}
+else{
+  console.log("New items.")
+  lrd.next_button_tries = 0;
+  lrd.current_items = data.items;
+  lrd.counter = 0;
+  lrd.no_more_items = data.no_more_items;
+}
+}
 }
 
 /**********************************************************************
@@ -315,8 +316,19 @@ function resultsView(force){
 
   var div = $("#result_table_div");
   div.html("");
-  var table = arrayOfArraysToTable(results);
+  var results_text = arrayOfArraysToText(results);
+  var table = arrayOfArraysToTable(results_text);
   div.append(table);
+  setUpDownload(results_text);
+}
+
+function arrayOfArraysToText(arrayOfArraysOfObjects){
+  var arrayOfArraysOfText = [];
+  for (var i = 0; i< arrayOfArraysOfObjects.length; i++){
+    var array = arrayOfArraysOfObjects[i];
+    arrayOfArraysOfText.push(_.pluck(array,"text"));
+  }
+  return arrayOfArraysOfText;
 }
 
 function arrayOfArraysToTable(arrayOfArrays){
@@ -328,17 +340,47 @@ function arrayOfArraysToTable(arrayOfArrays){
     var $tr = $("<tr></tr>");
     for (var j= 0; j< array.length; j++){
       var $td = $("<td></td>");
-      if (array[j].text){
-        $td.html(_.escape(array[j].text));
-      }
-      else {
-        $td.html(_.escape(array[j]));
-      }
+      $td.html(_.escape(array[j]));
       $tr.append($td);
     }
     $table.append($tr);
   }
   return $table;
+}
+
+
+/**********************************************************************
+ * Saving results to file
+ **********************************************************************/
+
+function download(){
+  var results_text = arrayOfArraysToText(results);
+  var csv_string = arrayOfArraysToCSV(results_text);
+  var blob = new Blob([csv_string], { type: "text/csv;charset=utf-8" });
+  var today = new Date();
+  saveAs(blob, "relation_scraper_" + today.getFullYear() + "-" + today.getMonth() + "-" + today.getDate() + ".csv");
+}
+
+function arrayOfArraysToCSV(content){
+  var finalVal = '';
+
+  for (var i = 0; i < content.length; i++) {
+    var value = content[i];
+
+    for (var j = 0; j < value.length; j++) {
+      var innerValue =  value[j]===null?'':value[j].toString();
+      var result = innerValue.replace(/"/g, '""');
+      if (result.search(/("|,|\n)/g) >= 0)
+        result = '"' + result + '"';
+      if (j > 0)
+        finalVal += ',';
+      finalVal += result;
+    }
+
+    finalVal += '\n';
+  }
+
+  return finalVal;
 }
 
 /**********************************************************************
@@ -477,16 +519,16 @@ function startProcessingList(){
     utilities.sendMessage("mainpanel", "content", "startProcessingList", "");
   }
 
-	var div = $("#result_table_div");
-	div.html($("#new_list").html());
-	
+  var div = $("#result_table_div");
+  div.html($("#new_list").html());
+
 	div.find(".list").addClass("list-active"); //how we'll display list
 	div.find(".radio").click(processNextButtonType);
 	div.find(".itemLimit").on('input propertychange paste', processItemLimit);
   div.find(".wait").on('input propertychange paste', processWait);
-	div.find(".buttonset").buttonset();
-	div.find(".done").click(stopProcessingList);
-	div.find(".cancel").click(cancelProcessingList);
+  div.find(".buttonset").buttonset();
+  div.find(".done").click(stopProcessingList);
+  div.find(".cancel").click(cancelProcessingList);
 }
 
 function openTabSequenceFromTrace(trace){
@@ -518,9 +560,9 @@ function stopProcessingList(){
       }
     }
   }
-	current_list = null;
-	utilities.sendMessage("mainpanel", "content", "stopProcessingList", "");
-	programView();
+  current_list = null;
+  utilities.sendMessage("mainpanel", "content", "stopProcessingList", "");
+  programView();
 }
 
 function cancelProcessingList(){
@@ -551,7 +593,7 @@ function processSelectorAndListData(data){
   //need to look at the previous demo's events, see if any of them happened on the same tab as this
   //if it did, need to parameterize on that somehow
   var $listDiv = $(".list-active");
-  var contentString = arrayOfArraysToTable(data["list"]);
+  var contentString = arrayOfArraysToTable(arrayOfArraysToText(data["list"]));
   $listDiv.html(contentString);
 }
 
