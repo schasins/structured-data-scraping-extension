@@ -173,7 +173,7 @@ function getAllCandidates(){
  * Domain-independent interpreter
  **********************************************************************/
 
- function interpretListSelector(feature_dict, exclude_first){
+ function interpretListSelector(feature_dict, exclude_first, suffixes){
   var candidates = getAllCandidates();
   var list = [];
   for (i=0;i<candidates.length;i++){
@@ -190,7 +190,17 @@ function getAllCandidates(){
       }
     }
     if (candidate_ok){
-      list.push(candidate);
+      var candidate_subitems = [];
+      var candidate_xpath = xPathToXPathList(nodeToXPath(candidate));
+      for (var j = 0; j < suffixes.length; j++){
+        var xpath = candidate_xpath.concat(suffixes[j]);
+        var xpath_string = xPathToString(xpath);
+        var nodes = xPathToNodes(xpath_string);
+        if (nodes.length > 0){
+          candidate_subitems.push(nodes[0]);
+        }
+      }
+      list.push(candidate_subitems);
     }
   }
   if (exclude_first && list.length > 0){
@@ -208,6 +218,10 @@ function getAllCandidates(){
  var current_selector = null;
  var current_selector_nodes = [];
  var first_click = true;
+ var first_row_mode = true;
+ var first_row_items = [];
+ var first_row_ancestor = null;
+ var suffixes = [];
  var likeliest_sibling = null;
 
  function startProcessingList(){
@@ -218,15 +232,19 @@ function getAllCandidates(){
    current_selector = null;
    current_selector_nodes = [];
    first_click = true;
+   first_row_mode = true;
+   first_row_items = [];
+   first_row_ancestor = null;
+   suffixes = [];
    likeliest_sibling = null;
+   first_row_ancestor = null;
  }
 
  function stopProcessingList(){
    processing_list = false;
    processing_next_button = false;
 
-  //dehighlight our old list
-  highlight(current_selector_nodes,"initial");
+  clearHighlights();
 }
 
 function listClick(event){
@@ -235,45 +253,64 @@ function listClick(event){
   }
   
   //dehighlight our old list
-  highlight(current_selector_nodes,"initial");
+  clearHighlights();
   
   event.stopPropagation();
   event.preventDefault();
 
   var target = targetFromEvent(event);
-  
-  //decide whether it's a positive or negative example based on whether
-  //it's in the old list
-  if (_.contains(current_selector_nodes,target)){
-    negative_nodes.push(target);
-    //if this node was in positive_nodes, remove it
-    positive_nodes = _.without(positive_nodes,target);
-    //if this was our first negative node, remove the likeliest sibling
-    positive_nodes = _.without(positive_nodes,likeliest_sibling);
-  }
-  else{
-    positive_nodes.push(target);
-    //if this node was in negative_nodes, remove it
-    negative_nodes = _.without(negative_nodes,target);
-  }
-  
-  //if this is the first click on the page, (so only one pos example)
+
+  //if this is the first row still, (so only one pos example)
   //try to make a guess about what the list will be
   //do this by adding a second likely list member to positive examples
-  if (first_click){
-    likeliest_sibling = findSibling(positive_nodes[0]);
+  if (first_row_mode){
+    first_row_items.push(target);
+    first_row_ancestor = findCommonAncestor(first_row_items);
+    positive_nodes = [first_row_ancestor]; //get rid of whatever node we used to think was the ancestor
+    likeliest_sibling = findSibling(first_row_ancestor, first_row_items);
+
+    var first_row_ancestor_xpath_list = xPathToXPathList(nodeToXPath(first_row_ancestor));
+    var xpath_list_length = first_row_ancestor_xpath_list.length;
+    suffixes = [];
+    for (var i = 0; i < first_row_items.length; i++){
+      var descendant_xpath_list = xPathToXPathList(nodeToXPath(first_row_items[i]));
+      var suffix = descendant_xpath_list.slice(xpath_list_length, descendant_xpath_list.length);
+      suffixes.push(suffix);
+    }
+
     if (likeliest_sibling !== null){
       positive_nodes.push(likeliest_sibling);
     }
-    first_click = false;
   }
-  
+  else{
+    var target_ancestor = findAncestor(first_row_ancestor,target);
+    //decide whether it's a positive or negative example based on whether
+    //it's in the old list
+    if (_.contains(current_selector_nodes,target_ancestor)){
+      negative_nodes.push(target_ancestor);
+      //if this node was in positive_nodes, remove it
+      positive_nodes = _.without(positive_nodes,target_ancestor);
+      //if this was our first negative node, remove the likeliest sibling
+      positive_nodes = _.without(positive_nodes,likeliest_sibling);
+    }
+    else{
+      positive_nodes.push(target_ancestor);
+      if (first_row_mode){
+        first_row_items.push(target_ancestor);
+      }
+      //if this node was in negative_nodes, remove it
+      negative_nodes = _.without(negative_nodes,target_ancestor);
+    }
+  }
+
   //synthesize a selector with our new information (node)
   synthesizeSelector();
   
   //highlight our new list and send it to the panel
-  highlight(current_selector_nodes,"#9EE4FF");
-  var textList = _.map(current_selector_nodes, nodeToMainpanelNodeRepresentation);
+  highlightCurrent(current_selector_nodes);
+  //recall current_selector_nodes is a list of lists
+  var textList = _.map(current_selector_nodes, function(nodes){return _.map(nodes, nodeToMainpanelNodeRepresentation);});
+  console.log("textList ", textList);
   var data = {"selector":current_selector,"list":textList,"frame_id":SimpleRecord.getFrameId()};
   utilities.sendMessage("content", "mainpanel", "selectorAndListData", data);
   
@@ -296,26 +333,85 @@ function nodeToTexts(node){
 
 function nodeToMainpanelNodeRepresentation(node){
   var $node = $(node);
+  /*
   if ($node.prop("tagName").toLowerCase() === "tr"){
     return _.map($node.children(), function(a){
       return {"text": $(a).text(), "xpath": nodeToXPath(a), "frame": SimpleRecord.getFrameId()};});
   }
-  return [{"text": $(node).text(), "xpath": nodeToXPath(node), "frame": SimpleRecord.getFrameId()}];
+  */
+  return {"text": $(node).text(), "xpath": nodeToXPath(node), "frame": SimpleRecord.getFrameId()};
 }
 
-function findSibling(node){
+function findCommonAncestor(nodes){
+  var xpath_lists = _.map(nodes, function(node){ return xPathToXPathList(nodeToXPath(node)); });
+  if (xpath_lists.length === 0){
+    console.log("Why are you trying to get the common ancestor of 0 nodes?");
+    return;
+  }
+  var first_xpath_list = xpath_lists[0];
+  for (var i = 0; i< first_xpath_list.length; i++){
+    var all_match = _.reduce(xpath_lists, function(acc, xpath_list){return acc && _.isEqual(xpath_list[i],first_xpath_list[i]);}, true);
+    if (!all_match){ break; }
+  }
+  var last_matching = i - 1;
+  var ancestor_xpath_list = first_xpath_list.slice(0,last_matching+1);
+  var ancestor_nodes = xPathToNodes(xPathToString(ancestor_xpath_list));
+  return ancestor_nodes[0];
+}
+
+function findAncestor(spec_ancestor, node){
+  //will return exactly the same node if there's only one item in first_row_items
+  var spec_xpath_list = xPathToXPathList(nodeToXPath(spec_ancestor));
   var xpath_list = xPathToXPathList(nodeToXPath(node));
+  var ancestor_xpath_list = xpath_list.slice(0,spec_xpath_list.length);
+  var ancestor_xpath_string = xPathToString(ancestor_xpath_list);
+  var ancestor_xpath_nodes = xPathToNodes(ancestor_xpath_string);
+  return ancestor_xpath_nodes[0];
+}
+
+function findSibling(node, descendants){
+  if(typeof(descendants)==='undefined') {descendants = [];}
+  var xpath_list = xPathToXPathList(nodeToXPath(node));
+  var xpath_list_length = xpath_list.length;
   for (var i = (xpath_list.length - 1); i >= 0; i--){
     var index = parseInt(xpath_list[i]["index"]);
     xpath_list[i]["index"] = index + 1;
     var xpath_string = xPathToString(xpath_list);
     var nodes = xPathToNodes(xpath_string);
-    if (nodes.length > 0) { return nodes[0]; }
+    if (nodes.length > 0) { 
+      //check whether this node has an entry for all desired suffixes
+      var has_all_suffixes = true;
+      for (var j = 0; j < suffixes.length; j++){
+        var suffix = suffixes[j];
+        var suffix_xpath_string = xPathToString(xpath_list.concat(suffix));
+        var suffix_nodes = xPathToNodes(suffix_xpath_string);
+        if (suffix_nodes.length === 0){
+          has_all_suffixes = false;
+        }
+      }
+      if (has_all_suffixes){
+        return nodes[0];
+      }
+    }
     if (index > 0){
       xpath_list[i]["index"] = index - 1;
       xpath_string = xPathToString(xpath_list);
       nodes = xPathToNodes(xpath_string);
-      if (nodes.length > 0) { return nodes[0]; }
+      if (nodes.length > 0) {
+      //check whether this node has an entry for all desired suffixes
+      var has_all_suffixes = true;
+      for (var j = 0; j < suffixes.length; j++){
+        var suffix = suffixes[j];
+        var suffix_xpath_string = xPathToString(xpath_list.concat(suffix));
+        var suffix_nodes = xPathToNodes(suffix_xpath_string);
+        if (suffix_nodes.length === 0){
+          has_all_suffixes = false;
+        }
+      }
+      if (has_all_suffixes){
+        return nodes[0];
+      }
+     }
     }
     xpath_list[i]["index"] = index;
   }
@@ -335,7 +431,7 @@ function synthesizeSelector(features){
   //if (feature_dict.hasOwnProperty("tag") && feature_dict["tag"].length > 1 && features !== all_features){
   //  return synthesizeSelector(all_features);
   //}
-  var nodes = interpretListSelector(feature_dict, false);
+  var nodes = interpretListSelector(feature_dict, false, suffixes);
   
   //now handle negative examples
   var exclude_first = false;
@@ -357,8 +453,8 @@ function synthesizeSelector(features){
   }
   
   //update our globals that track the current selector and list
-  current_selector_nodes = interpretListSelector(feature_dict, exclude_first);
-  current_selector = {"dict": feature_dict, "exclude_first": exclude_first};
+  current_selector_nodes = interpretListSelector(feature_dict, exclude_first, suffixes);
+  current_selector = {"dict": feature_dict, "exclude_first": exclude_first, "suffixes": suffixes};
 }
 
 function featureDict(features, positive_nodes){
@@ -527,10 +623,11 @@ function xPathToString(xpath_list){
  **********************************************************************/
 
  function useSelector(selector){
-  highlight(current_selector_nodes,"initial");
-  current_selector_nodes = interpretListSelector(selector["dict"], selector["exclude_first"]);
-  highlight(current_selector_nodes,"#9EE4FF");
-  list = _.map(current_selector_nodes, nodeToMainpanelNodeRepresentation);
+  clearHighlights();
+  current_selector_nodes = interpretListSelector(selector["dict"], selector["exclude_first"], selector["suffixes"]);
+  highlightCurrent(current_selector_nodes);
+  list = _.map(current_selector_nodes, function(nodes){return _.map(nodes, nodeToMainpanelNodeRepresentation);});
+  list = _.filter(list, function(row){return row.length !== 0;}); //TODO schasins: is this a reasonable filter?
   return list;
 }
 
@@ -667,12 +764,51 @@ function stopProcessingCapture(){
  * Helper functions
  **********************************************************************/
 
- function highlight(nodeList,color){
-  for (var i = 0; i < nodeList.length ; i++){
-    var $node = $(nodeList[i]);
-    stored_background_colors[$node.html()] = color;
+var colors = ["#9EE4FF","#9EB3FF", "#BA9EFF", "#9EFFEA", "#E4FF9E", "#FFBA9E", "#FF8E61"];
+function highlightCurrent(arrayOfArrays){
+  for (var i = 0; i < arrayOfArrays.length ; i++){
+    for (var j = 0; j < arrayOfArrays[i].length; j++){
+      var node = arrayOfArrays[i][j];
+      //TODO: first make sure there is a color in j, add one if there isn't
+      highlightCurrent(node, colors[j]);
+    }
   }
-  $(nodeList).css('background-color', color);
+}
+
+var highlightCount = 0;
+var highlights = {};
+function highlightNode(target, color) {
+  highlightCount +=1;
+  $target = $(target);
+  var offset = $target.offset();
+  var boundingBox = target.getBoundingClientRect();
+  var newDiv = $('<div/>');
+  var idName = 'ringer-hightlight-' + highlightCount;
+  newDiv.attr('id', idName);
+  newDiv.css('width', boundingBox.width);
+  newDiv.css('height', boundingBox.height);
+  newDiv.css('top', offset.top);
+  newDiv.css('left', offset.left);
+  newDiv.css('position', 'absolute');
+  newDiv.css('z-index', 1000);
+  newDiv.css('background-color', color);
+  newDiv.css('opacity', .4);
+  $(document.body).append(newDiv);
+  var html = $target.html();
+  if (highlights[html]) {highlights[html].push(idName);} else {highlights[html] = [idName];}
+  return idName;
+}
+
+function dehighlightNode(id) {
+  $('#' + id).remove();
+}
+
+function clearHighlights(){
+  for (var key in highlights){
+    var ids = highlights[key];
+    _.each(ids, dehighlightNode);
+  }
+  highlighs = {};
 }
 
 function levenshteinDistance (a, b) {

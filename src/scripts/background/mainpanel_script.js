@@ -319,7 +319,6 @@ function resultsView(force){
   var results_text = arrayOfArraysToText(results);
   var table = arrayOfArraysToTable(results_text);
   div.append(table);
-  setUpDownload(results_text);
 }
 
 function arrayOfArraysToText(arrayOfArraysOfObjects){
