@@ -531,7 +531,7 @@ function startProcessingList(){
 }
 
 function openTabSequenceFromTrace(trace){
-  var completed_events = _.filter(trace, function(event){return event.type === "completed";});
+  var completed_events = _.filter(trace, function(event){return event.type === "completed" && event.data.type === "main_frame";});
   var tabIDs = _.map(completed_events, function(event){return event.data.tabId});
   return tabIDs;
 }
