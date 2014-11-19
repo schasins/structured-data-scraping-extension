@@ -825,7 +825,7 @@ var Replay = (function ReplayClosure() {
         for (var i = currEventIndex-1; i >= 0; i--){
           var e = recordTimeEvents[i];
           var completedCounter = 0;
-          if (e.type === "completed"){
+          if (e.type === "completed" && e.data.type === "main_frame"){
             completedCounter++;
             if (e.data.url === currEventURL && e.data.tabId === currEventTabID){
               /* there's a record-time load event with the same url and tab id as 
@@ -834,7 +834,7 @@ var Replay = (function ReplayClosure() {
               var completedCounterReplay = 0;
               for (var j = replayTimeEventsSoFar.length - 1; j >= 0; j--){
                 var e2 = replayTimeEventsSoFar[j];
-                if (e2.type === "completed"){
+                if (e2.type === "completed" && e.data.type === "main_frame"){
                   completedCounterReplay++;
                   if (completedCounter === completedCounterReplay){
                     //this is the replay-time completed event that lines up with e
