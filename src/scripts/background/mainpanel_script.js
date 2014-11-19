@@ -120,7 +120,6 @@ function replayCallback(replay_object){
   console.log("replayCallback");
   console.log(rd["row_so_far"]);
   console.log("replayObject", replay_object);
-  var trace = replay_object.record.events;
   var new_row_so_far = rd.row_so_far;
   var replay_trace = replay_object.record.events;
   var texts = capturesFromTrace(replay_trace);
