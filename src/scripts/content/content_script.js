@@ -770,14 +770,14 @@ function highlightCurrent(arrayOfArrays){
     for (var j = 0; j < arrayOfArrays[i].length; j++){
       var node = arrayOfArrays[i][j];
       //TODO: first make sure there is a color in j, add one if there isn't
-      highlightCurrent(node, colors[j]);
+      highlightNodeC(node, colors[j]);
     }
   }
 }
 
 var highlightCount = 0;
 var highlights = {};
-function highlightNode(target, color) {
+function highlightNodeC(target, color) {
   highlightCount +=1;
   $target = $(target);
   var offset = $target.offset();
@@ -800,10 +800,12 @@ function highlightNode(target, color) {
 }
 
 function dehighlightNode(id) {
+  console.log("dehighlightNode");
   $('#' + id).remove();
 }
 
 function clearHighlights(){
+  console.log("clearHighlights");
   for (var key in highlights){
     var ids = highlights[key];
     _.each(ids, dehighlightNode);
