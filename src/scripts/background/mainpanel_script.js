@@ -338,7 +338,7 @@ function arrayOfArraysToTable(arrayOfArrays){
     var $tr = $("<tr></tr>");
     for (var j= 0; j< array.length; j++){
       var $td = $("<td></td>");
-      $td.html(_.escape(array[j]));
+      $td.html(_.escape(array[j]).replace(/\n/g,"<br>"));
       $tr.append($td);
     }
     $table.append($tr);

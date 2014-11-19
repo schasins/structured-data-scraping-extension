@@ -332,14 +332,13 @@ function nodeToTexts(node){
 }
 
 function nodeToMainpanelNodeRepresentation(node){
-  var $node = $(node);
   /*
   if ($node.prop("tagName").toLowerCase() === "tr"){
     return _.map($node.children(), function(a){
       return {"text": $(a).text(), "xpath": nodeToXPath(a), "frame": SimpleRecord.getFrameId()};});
   }
   */
-  return {"text": $(node).text(), "xpath": nodeToXPath(node), "frame": SimpleRecord.getFrameId()};
+  return {"text": node.innerText, "xpath": nodeToXPath(node), "frame": SimpleRecord.getFrameId()};
 }
 
 function findCommonAncestor(nodes){
