@@ -970,7 +970,8 @@ var Replay = (function ReplayClosure() {
 
       /* check if the script finished */
       if (index >= events.length) {
-        this.finish();
+        //no more events to actively replay, but may need to wait for some
+        this.waitForObservedEvents();
         return;
       }
 
@@ -988,6 +989,19 @@ var Replay = (function ReplayClosure() {
       }
 
       replayFunction.call(this, e);
+    },
+    openTabSequenceFromTrace: function _openTabSequenceFromTrace(trace){
+      var completed_events = _.filter(trace, function(event){return event.type === "completed" && event.data.type === "main_frame";});
+      var tabIDs = _.map(completed_events, function(event){return event.data.tabId});
+      return tabIDs;
+    },
+    waitForObservedEvents: function _waitForObservedEvents(){
+      if (this.openTabSequenceFromTrace(this.events).length === this.openTabSequenceFromTrace(this.record.events).length){
+        this.finish();
+      }
+      else{
+        setTimeout(this.waitForObservedEvents,500);
+      }
     },
     /* The main function which dispatches events to the content script */
     simulateDomEvent: function _simulateDomEvent(v) {
