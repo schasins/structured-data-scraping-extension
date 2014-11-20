@@ -525,6 +525,7 @@ function startProcessingList(){
 	div.find(".radio").click(processNextButtonType);
 	div.find(".itemLimit").on('input propertychange paste', processItemLimit);
   div.find(".wait").on('input propertychange paste', processWait);
+  div.find(".done_with_first_row").click(stopProcessingFirstRow);
   div.find(".buttonset").buttonset();
   div.find(".done").click(stopProcessingList);
   div.find(".cancel").click(cancelProcessingList);
@@ -594,6 +595,11 @@ function processSelectorAndListData(data){
   var $listDiv = $(".list-active");
   var contentString = arrayOfArraysToTable(arrayOfArraysToText(data["list"]));
   $listDiv.html(contentString);
+}
+
+function stopProcessingFirstRow(){
+  if (current_list === null){ return; }
+  utilities.sendMessage("mainpanel", "content", "stopProcessingFirstRow", "", null, null, [current_list.tab_info.id]);
 }
 
 function processNextButtonData(data){

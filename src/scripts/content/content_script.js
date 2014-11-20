@@ -24,6 +24,7 @@ utilities.listenForMessage("mainpanel", "content", "stopProcessingList", stopPro
 utilities.listenForMessage("mainpanel", "content", "startProcessingNextButton", startProcessingNextButton);
 utilities.listenForMessage("mainpanel", "content", "startProcessingCapture", startProcessingCapture);
 utilities.listenForMessage("mainpanel", "content", "stopProcessingCapture", stopProcessingCapture);
+utilities.listenForMessage("mainpanel", "content", "stopProcessingFirstRow", stopProcessingFirstRow);
 
 //messages sent by this component
 //utilities.sendMessage("content", "mainpanel", "selectorAndListData", data);
@@ -224,7 +225,7 @@ function getAllCandidates(){
  var suffixes = [];
  var likeliest_sibling = null;
 
- function startProcessingList(){
+function startProcessingList(){
    processing_list = true;
 
    positive_nodes = [];
@@ -240,11 +241,16 @@ function getAllCandidates(){
    first_row_ancestor = null;
  }
 
- function stopProcessingList(){
+function stopProcessingList(){
    processing_list = false;
    processing_next_button = false;
 
   clearHighlights();
+}
+
+
+function stopProcessingFirstRow(){
+  first_row_mode = false;
 }
 
 function listClick(event){
