@@ -304,13 +304,13 @@ else{
 }
 
 function resultsView(force){
+  var len = results.length;
   if (force != true){
     //reduce CPU-boundedness by not doing this for each new row
-    var len = results.length;
     if (len > 100 && len%100 !== 0){return;} 
     if (len > 1000 && len%1000 !== 0){return;} 
     if (len > 10000 && len%10000 !== 0){return;}
-    if (len > 100000 && len%100000 !== 0){return;}  
+    if (len > 20000){return;}
   }
 
   var div = $("#result_table_div");
@@ -318,6 +318,7 @@ function resultsView(force){
   var results_text = arrayOfArraysToText(results);
   var table = arrayOfArraysToTable(results_text);
   div.append(table);
+  if (len === 20000){div.append($("<p>Showing results up to the 20,000th row.  To see full results, click 'Download Results' button.</p>"));}
 }
 
 function arrayOfArraysToText(arrayOfArraysOfObjects){
