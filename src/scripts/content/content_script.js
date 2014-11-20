@@ -122,7 +122,7 @@ function outlineAdjustUp(event){
  "left", "bottom", "right", "top", "width", "height",
  "font-size", "font-family", "font-style", "font-weight", "color",
  "background-color", 
- "preceding-text",
+ "preceding-text", "text",
  "xpath"];
 
  function getFeature(element, feature){
@@ -131,6 +131,9 @@ function outlineAdjustUp(event){
   }
   else if (feature === "preceding-text"){
     return $(element).prev().text();
+  }
+  else if (feature === "text"){
+    return $(element).text();
   }
   else if (_.contains(["tag","class"],feature)){
     return element[feature+"Name"];
@@ -191,6 +194,7 @@ function getAllCandidates(){
       }
     }
     if (candidate_ok){
+      console.log(candidate);
       var candidate_subitems = [];
       var candidate_xpath = xPathToXPathList(nodeToXPath(candidate));
       for (var j = 0; j < suffixes.length; j++){
@@ -290,9 +294,11 @@ function listClick(event){
   }
   else{
     var target_ancestor = findAncestor(first_row_ancestor,target);
+    console.log("target_ancestor", target_ancestor);
     //decide whether it's a positive or negative example based on whether
     //it's in the old list
-    if (_.contains(current_selector_nodes,target_ancestor)){
+    if (_.reduce(current_selector_nodes, function(acc,row){return acc || _.contains(row,target_ancestor);}, false)){
+      console.log("negative node");
       negative_nodes.push(target_ancestor);
       //if this node was in positive_nodes, remove it
       positive_nodes = _.without(positive_nodes,target_ancestor);
@@ -300,6 +306,7 @@ function listClick(event){
       positive_nodes = _.without(positive_nodes,likeliest_sibling);
     }
     else{
+      console.log("positive node");
       positive_nodes.push(target_ancestor);
       if (first_row_mode){
         first_row_items.push(target_ancestor);
@@ -366,6 +373,7 @@ function findCommonAncestor(nodes){
 
 function findAncestor(spec_ancestor, node){
   //will return exactly the same node if there's only one item in first_row_items
+  console.log("findAncestor", spec_ancestor, node);
   var spec_xpath_list = xPathToXPathList(nodeToXPath(spec_ancestor));
   var xpath_list = xPathToXPathList(nodeToXPath(node));
   var ancestor_xpath_list = xpath_list.slice(0,spec_xpath_list.length);
@@ -436,23 +444,30 @@ function synthesizeSelector(features){
   //if (feature_dict.hasOwnProperty("tag") && feature_dict["tag"].length > 1 && features !== all_features){
   //  return synthesizeSelector(all_features);
   //}
-  var nodes = interpretListSelector(feature_dict, false, suffixes);
+  var rows = interpretListSelector(feature_dict, false, suffixes);
+  console.log("rows", rows);
   
   //now handle negative examples
   var exclude_first = false;
-  for (var i = 0; i < nodes.length ; i++){
-    var node = nodes[i];
-    if (_.contains(negative_nodes, node)){
-      if (i === 0){
-        exclude_first = true;
-      }
-      else if (features !== almost_all_features) {
-        //xpaths weren't enough to exclude nodes we need to exclude
-        return synthesizeSelector(almost_all_features);
-      }
-      else {
-        //we're using all our features, and still haven't excluded
-        //the ones we want to exclude.  what do we do?  TODO
+  for (var j = 0; j < rows.length; j++){
+    var nodes = rows[j];
+    for (var i = 0; i < nodes.length ; i++){
+      var node = nodes[i];
+      if (_.contains(negative_nodes, node)){
+        if (j === 0){
+          exclude_first = true;
+        }
+        else if (features !== almost_all_features) {
+          //xpaths weren't enough to exclude nodes we need to exclude
+          console.log("need to try more features.");
+          return synthesizeSelector(almost_all_features);
+        }
+        else {
+          console.log("using all our features and still not working.  freak out.");
+          console.log(feature_dict);
+          //we're using all our features, and still haven't excluded
+          //the ones we want to exclude.  what do we do?  TODO
+        }
       }
     }
   }
@@ -477,16 +492,22 @@ function featureDict(features, positive_nodes){
       feature_dict[feature]["values"].push(value);
     }
   }
+
+  console.log("featureDict feature_dict", feature_dict);
   
   //where a feature has more then 3 values, it's too much
   //also need to handle xpath differently, merging to xpaths with *s
   var filtered_feature_dict = {};
   for (var feature in feature_dict){
     var values = collapseValues(feature, feature_dict[feature]["values"]);
-    if (feature === "xpath" || (values.length <= 3 && values.length !== positive_nodes.length && values.length !== (positive_nodes.length - 1))){
+    console.log(feature, values.length, positive_nodes.length);
+    if (feature === "xpath" || (values.length <= 3 && values.length !== positive_nodes.length)){
+      console.log("accept feature: ", feature);
       filtered_feature_dict[feature] = {"values":values,"pos":true};
     }
   }
+
+  console.log("returning featureDict filtered_feature_dict", filtered_feature_dict);
   return filtered_feature_dict;
 }
 
@@ -798,7 +819,7 @@ function highlightNodeC(target, color) {
   newDiv.css('z-index', 1000);
   newDiv.css('background-color', color);
   newDiv.css('opacity', .4);
-  $(document.body).append(newDiv);
+  //$(document.body).append(newDiv);
   var html = $target.html();
   if (highlights[html]) {highlights[html].push(idName);} else {highlights[html] = [idName];}
   return idName;
