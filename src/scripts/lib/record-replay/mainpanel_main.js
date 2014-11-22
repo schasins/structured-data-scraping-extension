@@ -1000,7 +1000,8 @@ var Replay = (function ReplayClosure() {
         this.finish();
       }
       else{
-        setTimeout(this.waitForObservedEvents,500);
+        var replayer = this;
+        setTimeout(function(){replayer.waitForObservedEvents();},500);
       }
     },
     /* The main function which dispatches events to the content script */
