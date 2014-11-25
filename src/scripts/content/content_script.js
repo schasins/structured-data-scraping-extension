@@ -332,26 +332,36 @@ function listClick(event){
   console.log(current_selector_nodes);
 }
 
-function nodeToText(node){
-	return $(node).text();
-}
-
-function nodeToTexts(node){
-  var $node = $(node);
-  if ($node.prop("tagName").toLowerCase() === "tr"){
-    return _.map($node.children(), nodeToText);
-  }
-  return [nodeToText(node)];
-}
-
 function nodeToMainpanelNodeRepresentation(node){
-  /*
-  if ($node.prop("tagName").toLowerCase() === "tr"){
-    return _.map($node.children(), function(a){
-      return {"text": $(a).text(), "xpath": nodeToXPath(a), "frame": SimpleRecord.getFrameId()};});
-  }
-  */
-  return {"text": node.innerText, "xpath": nodeToXPath(node), "frame": SimpleRecord.getFrameId()};
+  return {"text": nodeToText(node), "xpath": nodeToXPath(node), "frame": SimpleRecord.getFrameId()};
+}
+
+function nodeToText(node){
+  //var text = node.innerText;
+  return getElementText(node);
+}
+
+function getElementText(el) {
+    var text = '';
+    // Text node (3) or CDATA node (4) - return its text
+    if ( (el.nodeType === 3) || (el.nodeType === 4) ) {
+        text = el.nodeValue+"\n";
+    // If node is an element (1) and an img, input[type=image], or area element, return its alt text
+    } else if ( (el.nodeType === 1) && (
+            (el.tagName.toLowerCase() == 'img') ||
+            (el.tagName.toLowerCase() == 'area') ||
+            ((el.tagName.toLowerCase() == 'input') && el.getAttribute('type') && (el.getAttribute('type').toLowerCase() == 'image'))
+            ) ) {
+        text = el.getAttribute('alt') || '';
+        if (text !== ''){text += "\n";}
+    // Traverse children unless this is a script or style element
+    } else if ( (el.nodeType === 1) && !el.tagName.match(/^(script|style)$/i) ) {
+        var children = el.childNodes;
+        for (var i = 0, l = children.length; i < l; i++) {
+            text += getElementText(children[i]);
+        }
+    }
+    return text;
 }
 
 function findCommonAncestor(nodes){
