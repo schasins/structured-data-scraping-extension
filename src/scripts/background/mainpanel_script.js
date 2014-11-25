@@ -270,7 +270,7 @@ lrd.no_more_items = true;
 }
 }
 else{
-  console.log("New items.")
+  console.log("New items.");
   lrd.next_button_tries = 0;
   lrd.current_items = data.items;
   lrd.counter = 0;
@@ -305,7 +305,7 @@ else{
 
 function resultsView(force){
   var len = results.length;
-  if (force != true){
+  if (force !== true){
     //reduce CPU-boundedness by not doing this for each new row
     if (len > 100 && len%100 !== 0){return;} 
     if (len > 1000 && len%1000 !== 0){return;} 
@@ -533,7 +533,7 @@ function startProcessingList(){
 
 function openTabSequenceFromTrace(trace){
   var completed_events = _.filter(trace, function(event){return event.type === "completed" && event.data.type === "main_frame";});
-  var tabIDs = _.map(completed_events, function(event){return event.data.tabId});
+  var tabIDs = _.map(completed_events, function(event){return event.data.tabId;});
   return tabIDs;
 }
 

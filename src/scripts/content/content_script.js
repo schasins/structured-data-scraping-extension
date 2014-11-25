@@ -819,7 +819,8 @@ function highlightNodeC(target, color) {
   newDiv.css('z-index', 1000);
   newDiv.css('background-color', color);
   newDiv.css('opacity', .4);
-  //$(document.body).append(newDiv);
+  newDiv.css('pointer-events', 'none');
+  $(document.body).append(newDiv);
   var html = $target.html();
   if (highlights[html]) {highlights[html].push(idName);} else {highlights[html] = [idName];}
   return idName;
