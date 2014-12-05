@@ -197,7 +197,7 @@ function runListLoop(curr_program, program, index, row_so_far){
   }
   //still waiting for items from the last call
   if (lrd.waiting_for_items){
-    if (lrd.waiting_tries <= 30){
+    if (lrd.waiting_tries <= 20){
       console.log("Still waiting for items.");
       lrd.waiting_tries += 1;
       return wait;
@@ -234,7 +234,7 @@ function runListLoop(curr_program, program, index, row_so_far){
   lrd.skip_next = false;
   //TODO tabs: send this to the right tab (not frame), not just any old tab
   console.log("Asking for more items.");
-  utilities.sendMessage("mainpanel", "content", "getMoreItems", data, null, null, [tab_id]);
+  setTimeout(function(){utilities.sendMessage("mainpanel", "content", "getMoreItems", data, null, null, [tab_id]);},1000);//since just sent next request, best to wait a moment
   lrd.waiting_for_items = true;
   lrd.waiting_tries = 0;
   return wait;
@@ -261,13 +261,13 @@ function moreItems(data){
       lrd.skip_next = true; 
       lrd.next_button_tries += 1;
       console.log("Same old items.");
-      if (lrd.next_button_tries > 30){
-        //we've tried 30 times to get the next button to work, and it's still not working
+      if (lrd.next_button_tries > 10){
+        //we've tried 10 times to get the next button to work, and it's still not working
         //time to assume it's the end of the list (sometimes there's a button that 
         //looks like a next button but is grayed out, that sort of thing)
-console.log("Tried the next button 30 times now, still no luck.  Give up.");
-lrd.no_more_items = true;
-}
+        console.log("Tried the next button 10 times now, still no luck.  Give up.");
+        lrd.no_more_items = true;
+      }
 }
 else{
   console.log("New items.");
@@ -309,25 +309,34 @@ function resultsView(force){
     //reduce CPU-boundedness by not doing this for each new row
     if (len > 100 && len%100 !== 0){return;} 
     if (len > 1000 && len%1000 !== 0){return;} 
-    if (len > 10000 && len%10000 !== 0){return;}
-    if (len > 20000){return;}
+    if (len > 10000){return;}
   }
 
   var div = $("#result_table_div");
   div.html("");
-  var results_text = arrayOfArraysToText(results);
-  var table = arrayOfArraysToTable(results_text);
-  div.append(table);
-  if (len === 20000){div.append($("<p>Showing results up to the 20,000th row.  To see full results, click 'Download Results' button.</p>"));}
+  var continuation = function(results_text){
+    var table = arrayOfArraysToTable(results_text);
+    div.append(table);
+    if (len === 10000){div.append($("<p>Showing results up to the 10,000th row.  To see full results, click 'Download Results' button.</p>"));}
+  }
+  var results_text = arrayOfArraysToText(results, continuation);
 }
 
-function arrayOfArraysToText(arrayOfArraysOfObjects){
-  var arrayOfArraysOfText = [];
-  for (var i = 0; i< arrayOfArraysOfObjects.length; i++){
+function arrayOfArraysToText(arrayOfArraysOfObjects, continuation){
+  arrayOfArraysToTextHelper(arrayOfArraysOfObjects, continuation, [],0);
+}
+
+//trying to break down arrayOfArraysToText into smaller pieces to avoid crashing main panel
+function arrayOfArraysToTextHelper(arrayOfArraysOfObjects, continuation, arrayOfArraysOfText, index){
+  for (var i = index; i< arrayOfArraysOfObjects.length; i++){
     var array = arrayOfArraysOfObjects[i];
     arrayOfArraysOfText.push(_.pluck(array,"text"));
+    if (i-index === 1000) {
+      //we've done 1000 items, time to take a break
+      setTimeout(function(){arrayOfArraysToTextHelper(arrayOfArraysOfObjects,continuation, arrayOfArraysOfText,i+1);},0);
+    }
   }
-  return arrayOfArraysOfText;
+  continuation(arrayOfArraysOfText);
 }
 
 function arrayOfArraysToTable(arrayOfArrays){
@@ -353,17 +362,23 @@ function arrayOfArraysToTable(arrayOfArrays){
  **********************************************************************/
 
 function download(){
-  var results_text = arrayOfArraysToText(results);
-  var csv_string = arrayOfArraysToCSV(results_text);
-  var blob = new Blob([csv_string], { type: "text/csv;charset=utf-8" });
-  var today = new Date();
-  saveAs(blob, "relation_scraper_" + today.getFullYear() + "-" + today.getMonth() + "-" + today.getDate() + ".csv");
+  var continuation = function(results_text){
+    var continuation = function(csv_string){
+      var blob = new Blob([csv_string], { type: "text/csv;charset=utf-8" });
+      var today = new Date();
+      saveAs(blob, "relation_scraper_" + today.getFullYear() + "-" + today.getMonth() + "-" + today.getDate() + ".csv");
+    }
+    var csv_string = arrayOfArraysToCSV(results_text, continuation);
+  }
+  var results_text = arrayOfArraysToText(results, continuation);
 }
 
-function arrayOfArraysToCSV(content){
-  var finalVal = '';
+function arrayOfArraysToCSV(content, continuation){
+  arrayOfArraysToCSVHelper(content, continuation, '', 0);
+}
 
-  for (var i = 0; i < content.length; i++) {
+function arrayOfArraysToCSVHelper(content, continuation, finalVal, index){
+  for (var i = index; i < content.length; i++) {
     var value = content[i];
 
     for (var j = 0; j < value.length; j++) {
@@ -377,9 +392,13 @@ function arrayOfArraysToCSV(content){
     }
 
     finalVal += '\n';
+    if (i-index === 1000) {
+      //we've done 1000 items, time to take a break
+      setTimeout(function(){arrayOfArraysToCSVHelper(content,continuation, finalVal,i+1);},0);
+    }
   }
 
-  return finalVal;
+  continuation(finalVal);
 }
 
 /**********************************************************************
@@ -593,8 +612,11 @@ function processSelectorAndListData(data){
   //need to look at the previous demo's events, see if any of them happened on the same tab as this
   //if it did, need to parameterize on that somehow
   var $listDiv = $(".list-active");
-  var contentString = arrayOfArraysToTable(arrayOfArraysToText(data["list"]));
-  $listDiv.html(contentString);
+  var continuation = function(contentText){
+    var contentString = arrayOfArraysToTable(contentText);
+    $listDiv.html(contentString);
+  }
+  var contentText = arrayOfArraysToText(data["list"], continuation);
 }
 
 function stopProcessingFirstRow(){
