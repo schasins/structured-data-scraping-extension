@@ -4,6 +4,8 @@ This Chrome extension was built to empower non-programmers to scrape data from t
 
 The tool currently targets relational data and pages with consistent structures.
 
+To see the tool in action, check out [the video demo](https://www.youtube.com/watch?v=nGU5yN2NZ-I).
+
 <h2>Directions</h2>
 
 <b>1.</b> Click on the Relation Scraper (RS) icon in the upper right of the browser window.  This opens the RS control panel, shown at the left in the screen capture below.
