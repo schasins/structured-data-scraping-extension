@@ -1,3 +1,4 @@
+var all_script_results = [];
 function setUp(){
 
   //messages received by this component
@@ -21,13 +22,21 @@ function setUp(){
   $("#run").click(run);
   $("#download_results").click(download);
   $("button").button();	
+
+  chrome.storage.sync.get("all_script_results", function(obj){
+    var asr = obj.all_script_results;
+    if (!asr){
+      asr = [];
+    }
+    all_script_results = asr;
+  });
 }
 
 $(setUp);
 
 var program = [];
-var results = [];
 var first_row = [];
+var curr_run_results_name = "";
 
 /**********************************************************************
  * Run the program
@@ -36,8 +45,13 @@ var first_row = [];
  var stack = [];
 
  function run(){
-  results = [];
   stack = [];
+  var today = new Date();
+  curr_run_results_name = today.getFullYear() + "-" + today.getMonth() + "-" + today.getDate() + "_" + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+  all_script_results.push(curr_run_results_name);
+  chrome.storage.sync.set({"all_script_results":all_script_results});
+  chrome.storage.sync.set({curr_run_results_name:[]}); //initialize with empty array
+  resultsViewSetup();
   runHelper(program, 0, []);
 }
 
@@ -47,8 +61,15 @@ function runHelper(program, index, row_so_far, push_results){
   if (typeof push_results === 'undefined') push_results = true;
   if (program.length === index){
     if (push_results){
-      results.push(row_so_far);
-      resultsView();
+      chrome.storage.sync.get(curr_run_results_name, function(obj){
+        var results = obj[curr_run_results_name];
+        if (!results){ results = []; } //sync doesn't seem to actually store empty arrays
+        results.push(row_so_far);
+        data = {};
+        data[curr_run_results_name] = results;
+        chrome.storage.sync.set(data);
+      });
+      resultsView(row_so_far);
     }
     if (stack.length > 0){
       console.log("Popping off the stack.");
@@ -57,8 +78,8 @@ function runHelper(program, index, row_so_far, push_results){
       next_func();
     }
     else{
-      console.log("Stack empty.  Forcing data display.");
-      resultsView(true);
+      console.log("Stack empty.");
+      resultsView(row_so_far);
     }
     return;
   }
@@ -303,34 +324,31 @@ else{
   div.append($(first_row_str));
 }
 
-function resultsView(force){
-  var len = results.length;
-  if (force !== true){
-    //reduce CPU-boundedness by not doing this for each new row
-    if (len > 100 && len%100 !== 0){return;} 
-    if (len > 1000 && len%1000 !== 0){return;} 
-    if (len > 10000){return;}
-  }
-
+function resultsViewSetup(){
   var div = $("#result_table_div");
-  div.html("");
-  var continuation = function(results_text){
-    var table = arrayOfArraysToTable(results_text);
-    div.append(table);
-    if (len === 10000){div.append($("<p>Showing results up to the 10,000th row.  To see full results, click 'Download Results' button.</p>"));}
-  }
-  var results_text = arrayOfArraysToText(results, continuation);
+  div.html('<table id="result_table"></table>');
+}
+
+function resultsView(new_row){
+  var table = $("#result_table");
+  var array_of_texts = arrayOfMainpanelObjectsToArrayOfTexts(new_row);
+  var table_row = arrayOfTextsToTableRow(array_of_texts);
+  table.append(table_row);
 }
 
 function arrayOfArraysToText(arrayOfArraysOfObjects, continuation){
   arrayOfArraysToTextHelper(arrayOfArraysOfObjects, continuation, [],0);
 }
 
+function arrayOfMainpanelObjectsToArrayOfTexts(array){
+  return _.pluck(array,"text");
+}
+
 //trying to break down arrayOfArraysToText into smaller pieces to avoid crashing main panel
 function arrayOfArraysToTextHelper(arrayOfArraysOfObjects, continuation, arrayOfArraysOfText, index){
   for (var i = index; i< arrayOfArraysOfObjects.length; i++){
     var array = arrayOfArraysOfObjects[i];
-    arrayOfArraysOfText.push(_.pluck(array,"text"));
+    arrayOfArraysOfText.push(arrayOfMainpanelObjectsToArrayOfTexts(array));
     if (i-index === 1000) {
       //we've done 1000 items, time to take a break
       setTimeout(function(){arrayOfArraysToTextHelper(arrayOfArraysOfObjects,continuation, arrayOfArraysOfText,i+1);},0);
@@ -339,18 +357,21 @@ function arrayOfArraysToTextHelper(arrayOfArraysOfObjects, continuation, arrayOf
   continuation(arrayOfArraysOfText);
 }
 
+function arrayOfTextsToTableRow(array){
+  var $tr = $("<tr></tr>");
+  for (var j= 0; j< array.length; j++){
+    var $td = $("<td></td>");
+    $td.html(_.escape(array[j]).replace(/\n/g,"<br>"));
+    $tr.append($td);
+  }
+  return $tr;
+}
+
 function arrayOfArraysToTable(arrayOfArrays){
-  //input may either be an array of arrays with text items
-  //or array of arrays with dict items, where each dict has text key
   var $table = $("<table></table>");
   for (var i = 0; i< arrayOfArrays.length; i++){
     var array = arrayOfArrays[i];
-    var $tr = $("<tr></tr>");
-    for (var j= 0; j< array.length; j++){
-      var $td = $("<td></td>");
-      $td.html(_.escape(array[j]).replace(/\n/g,"<br>"));
-      $tr.append($td);
-    }
+    $tr = arrayOfTextsToTableRow(array);
     $table.append($tr);
   }
   return $table;
@@ -362,15 +383,15 @@ function arrayOfArraysToTable(arrayOfArrays){
  **********************************************************************/
 
 function download(){
-  var continuation = function(results_text){
-    var continuation = function(csv_string){
-      var blob = new Blob([csv_string], { type: "text/csv;charset=utf-8" });
-      var today = new Date();
-      saveAs(blob, "relation_scraper_" + today.getFullYear() + "-" + today.getMonth() + "-" + today.getDate() + ".csv");
-    }
-    var csv_string = arrayOfArraysToCSV(results_text, continuation);
-  }
-  var results_text = arrayOfArraysToText(results, continuation);
+  chrome.storage.sync.get(curr_run_results_name, function(obj){
+    var results = obj[curr_run_results_name];
+    arrayOfArraysToText(results, function(results_text){
+      arrayOfArraysToCSV(results_text, function(csv_string){
+        var blob = new Blob([csv_string], { type: "text/csv;charset=utf-8" });
+        saveAs(blob, "relation_scraper_" + curr_run_results_name + ".csv");
+      });
+    });
+  });
 }
 
 function arrayOfArraysToCSV(content, continuation){

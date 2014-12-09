@@ -12,7 +12,8 @@
     "tabs",
     "http://*/*",
     "https://*/*",
-    "webRequest"
+    "webRequest",
+    "storage"
   ],
   "background": {
     "page": "pages/background.html"
