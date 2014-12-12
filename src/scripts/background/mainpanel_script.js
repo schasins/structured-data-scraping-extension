@@ -38,6 +38,7 @@ var program = [];
 var first_row = [];
 var curr_run_results_name = "";
 var len_results = 0;
+var curr_results_block = [];
 
 /**********************************************************************
  * Run the program
@@ -45,9 +46,10 @@ var len_results = 0;
 
  var stack = [];
 
- function run(){
+function run(){
   stack = [];
   len_results = 0;
+  curr_results_block = [];
   var today = new Date();
   curr_run_results_name = today.getFullYear() + "-" + today.getMonth() + "-" + today.getDate() + "_" + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
   all_script_results.push(curr_run_results_name);
@@ -57,6 +59,25 @@ var len_results = 0;
   runHelper(program, 0, []);
 }
 
+function storeResults(row){
+  curr_results_block.push(row);
+  if (curr_results_block.length === 100) {
+    storeResultsToChromeStorage();
+    //breaking data into chunks of 100 rows keeps mem load low, but also reduces calls to chrome storage, which gets backed up if we try to update on every row
+  }
+}
+
+function storeResultsToChromeStorage(){
+  chrome.storage.local.get(curr_run_results_name, function(obj){
+    var results = obj[curr_run_results_name];
+    if (!results){ results = []; }
+    data = {};
+    data[curr_run_results_name] = results.concat(curr_results_block);
+    chrome.storage.local.set(data);
+    curr_results_block = [];
+  });
+}
+
 function runHelper(program, index, row_so_far, push_results){
   console.log("runHelper");
   console.log(row_so_far);
@@ -64,14 +85,7 @@ function runHelper(program, index, row_so_far, push_results){
   if (program.length === index){
     if (push_results){
       len_results +=1;
-      chrome.storage.local.get(curr_run_results_name, function(obj){
-        var results = obj[curr_run_results_name];
-        if (!results){ results = []; } //sync doesn't seem to actually store empty arrays
-        results.push(row_so_far);
-        data = {};
-        data[curr_run_results_name] = results;
-        chrome.storage.local.set(data);
-      });
+      storeResults(row_so_far);
       resultsView(row_so_far);
     }
     if (stack.length > 0){
@@ -82,7 +96,7 @@ function runHelper(program, index, row_so_far, push_results){
     }
     else{
       console.log("Stack empty.");
-      resultsView(row_so_far);
+      storeResultsToChromeStorage(); //force storage now
     }
     return;
   }
@@ -399,8 +413,10 @@ function download(){
     console.log("Results: ", results);
     arrayOfArraysToText(results, function(results_text){
       arrayOfArraysToCSV(results_text, function(csv_string){
+        console.log("**********************About to make blob.");
         var blob = new Blob([csv_string], { type: "text/csv;charset=utf-8" });
         saveAs(blob, "relation_scraper_" + curr_run_results_name + ".csv");
+        console.log("**********************SAVED.");
       });
     });
   });
