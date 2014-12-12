@@ -23,7 +23,7 @@ function setUp(){
   $("#download_results").click(download);
   $("button").button();	
 
-  chrome.storage.sync.get("all_script_results", function(obj){
+  chrome.storage.local.get("all_script_results", function(obj){
     var asr = obj.all_script_results;
     if (!asr){
       asr = [];
@@ -37,6 +37,7 @@ $(setUp);
 var program = [];
 var first_row = [];
 var curr_run_results_name = "";
+var len_results = 0;
 
 /**********************************************************************
  * Run the program
@@ -46,11 +47,12 @@ var curr_run_results_name = "";
 
  function run(){
   stack = [];
+  len_results = 0;
   var today = new Date();
   curr_run_results_name = today.getFullYear() + "-" + today.getMonth() + "-" + today.getDate() + "_" + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
   all_script_results.push(curr_run_results_name);
-  chrome.storage.sync.set({"all_script_results":all_script_results});
-  chrome.storage.sync.set({curr_run_results_name:[]}); //initialize with empty array
+  chrome.storage.local.set({"all_script_results":all_script_results});
+  chrome.storage.local.set({curr_run_results_name:[]}); //initialize with empty array
   resultsViewSetup();
   runHelper(program, 0, []);
 }
@@ -61,13 +63,14 @@ function runHelper(program, index, row_so_far, push_results){
   if (typeof push_results === 'undefined') push_results = true;
   if (program.length === index){
     if (push_results){
-      chrome.storage.sync.get(curr_run_results_name, function(obj){
+      len_results +=1;
+      chrome.storage.local.get(curr_run_results_name, function(obj){
         var results = obj[curr_run_results_name];
         if (!results){ results = []; } //sync doesn't seem to actually store empty arrays
         results.push(row_so_far);
         data = {};
         data[curr_run_results_name] = results;
-        chrome.storage.sync.set(data);
+        chrome.storage.local.set(data);
       });
       resultsView(row_so_far);
     }
@@ -330,10 +333,16 @@ function resultsViewSetup(){
 }
 
 function resultsView(new_row){
-  var table = $("#result_table");
-  var array_of_texts = arrayOfMainpanelObjectsToArrayOfTexts(new_row);
-  var table_row = arrayOfTextsToTableRow(array_of_texts);
-  table.append(table_row);
+  if (len_results <= 2000){
+    var table = $("#result_table");
+    var array_of_texts = arrayOfMainpanelObjectsToArrayOfTexts(new_row);
+    var table_row = arrayOfTextsToTableRow(array_of_texts);
+    table.append(table_row);
+  }
+  if (len_results === 2000){
+    var div = $("#result_table_div");
+    div.append($("<p>Showing the first 2,000 rows of data.  To see the full data set, click 'Download Results.'</p>"));
+  }
 }
 
 function arrayOfArraysToText(arrayOfArraysOfObjects, continuation){
@@ -383,8 +392,11 @@ function arrayOfArraysToTable(arrayOfArrays){
  **********************************************************************/
 
 function download(){
-  chrome.storage.sync.get(curr_run_results_name, function(obj){
+  console.log("Downloading");
+  chrome.storage.local.get(curr_run_results_name, function(obj){
+    console.log("Ran get.");
     var results = obj[curr_run_results_name];
+    console.log("Results: ", results);
     arrayOfArraysToText(results, function(results_text){
       arrayOfArraysToCSV(results_text, function(csv_string){
         var blob = new Blob([csv_string], { type: "text/csv;charset=utf-8" });
