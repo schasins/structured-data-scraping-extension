@@ -54,7 +54,9 @@ function run(){
   curr_run_results_name = today.getFullYear() + "-" + today.getMonth() + "-" + today.getDate() + "_" + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
   all_script_results.push(curr_run_results_name);
   chrome.storage.local.set({"all_script_results":all_script_results});
-  chrome.storage.local.set({curr_run_results_name:[]}); //initialize with empty array
+  var data = {};
+  data[curr_run_results_name] = [];
+  chrome.storage.local.set(data); //initialize with empty array
   resultsViewSetup();
   runHelper(program, 0, []);
 }
@@ -69,11 +71,12 @@ function storeResults(row){
 
 function storeResultsToChromeStorage(){
   chrome.storage.local.get(curr_run_results_name, function(obj){
+    console.log("obj: ", obj);
     var results = obj[curr_run_results_name];
-    if (!results){ results = []; }
-    data = {};
+    var data = {};
     data[curr_run_results_name] = results.concat(curr_results_block);
-    chrome.storage.local.set(data);
+    chrome.storage.local.set(data, function(){chrome.storage.local.get(curr_run_results_name, function(obj){console.log("set to: ", obj);});});
+    console.log("setting:", data);
     curr_results_block = [];
   });
 }
@@ -408,7 +411,7 @@ function arrayOfArraysToTable(arrayOfArrays){
 function download(){
   console.log("Downloading");
   chrome.storage.local.get(curr_run_results_name, function(obj){
-    console.log("Ran get.");
+    console.log("Ran get for: ", curr_run_results_name);
     var results = obj[curr_run_results_name];
     console.log("Results: ", results);
     arrayOfArraysToText(results, function(results_text){
