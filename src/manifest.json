@@ -13,7 +13,8 @@
     "http://*/*",
     "https://*/*",
     "webRequest",
-    "storage"
+    "storage",
+    "unlimitedStorage"
   ],
   "background": {
     "page": "pages/background.html"

@@ -71,12 +71,10 @@ function storeResults(row){
 
 function storeResultsToChromeStorage(){
   chrome.storage.local.get(curr_run_results_name, function(obj){
-    console.log("obj: ", obj);
     var results = obj[curr_run_results_name];
     var data = {};
     data[curr_run_results_name] = results.concat(curr_results_block);
-    chrome.storage.local.set(data, function(){chrome.storage.local.get(curr_run_results_name, function(obj){console.log("set to: ", obj);});});
-    console.log("setting:", data);
+    chrome.storage.local.set(data);
     curr_results_block = [];
   });
 }
@@ -409,17 +407,14 @@ function arrayOfArraysToTable(arrayOfArrays){
  **********************************************************************/
 
 function download(){
-  console.log("Downloading");
+  console.log("Downloading.");
   chrome.storage.local.get(curr_run_results_name, function(obj){
-    console.log("Ran get for: ", curr_run_results_name);
     var results = obj[curr_run_results_name];
-    console.log("Results: ", results);
     arrayOfArraysToText(results, function(results_text){
       arrayOfArraysToCSV(results_text, function(csv_string){
-        console.log("**********************About to make blob.");
         var blob = new Blob([csv_string], { type: "text/csv;charset=utf-8" });
         saveAs(blob, "relation_scraper_" + curr_run_results_name + ".csv");
-        console.log("**********************SAVED.");
+        console.log("Saved.");
       });
     });
   });
