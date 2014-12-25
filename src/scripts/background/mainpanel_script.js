@@ -73,7 +73,8 @@ function storeResultsToChromeStorage(){
   chrome.storage.local.get(curr_run_results_name, function(obj){
     var results = obj[curr_run_results_name];
     var data = {};
-    data[curr_run_results_name] = results.concat(curr_results_block);
+    results = results.concat(curr_results_block);
+    data[curr_run_results_name] = results;
     chrome.storage.local.set(data);
     curr_results_block = [];
   });
@@ -195,7 +196,7 @@ function runListLoop(curr_program, program, index, row_so_far){
   }
   else {
     //we have a real item
-    var new_row_so_far = row_so_far.slice(0); //copy
+    var new_row_so_far = deepClone(row_so_far);
     new_row_so_far = new_row_so_far.concat(item);
     //go on to next row once we finish the current row
     stack.push(function(){setTimeout(function(){runListLoop(curr_program, program, index, row_so_far);},curr_program.wait);});
@@ -203,6 +204,10 @@ function runListLoop(curr_program, program, index, row_so_far){
     runHelper(program, index+1, new_row_so_far);
     console.log("returned from runListLoop runHelper call.");
   }
+}
+
+function deepClone(arr){
+  return JSON.parse(JSON.stringify(arr));
 }
 
 /**********************************************************************
