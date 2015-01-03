@@ -63,9 +63,10 @@ function run(){
 
 function storeResults(row){
   curr_results_block.push(row);
-  if (curr_results_block.length === 100) {
+  if (curr_results_block.length === 8000) {
     storeResultsToChromeStorage();
     //breaking data into chunks of 100 rows keeps mem load low, but also reduces calls to chrome storage, which gets backed up if we try to update on every row
+    //also chrome crashes if we make too many stores to localStorage, getting too much of a backlog.  even breaking into groups of 100 rows was too often
   }
 }
 
