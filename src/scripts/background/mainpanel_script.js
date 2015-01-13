@@ -39,6 +39,7 @@ var first_row = [];
 var curr_run_results_name = "";
 var len_results = 0;
 var curr_results_block = [];
+var results_blocks_counter = 0;
 
 /**********************************************************************
  * Run the program
@@ -53,6 +54,7 @@ function run(){
   var today = new Date();
   curr_run_results_name = today.getFullYear() + "-" + today.getMonth() + "-" + today.getDate() + "_" + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
   all_script_results.push(curr_run_results_name);
+  results_blocks_counter = 0;
   chrome.storage.local.set({"all_script_results":all_script_results});
   var data = {};
   data[curr_run_results_name] = [];
@@ -63,7 +65,7 @@ function run(){
 
 function storeResults(row){
   curr_results_block.push(row);
-  if (curr_results_block.length === 8000) {
+  if (curr_results_block.length === 10000) {
     storeResultsToChromeStorage();
     //breaking data into chunks of 100 rows keeps mem load low, but also reduces calls to chrome storage, which gets backed up if we try to update on every row
     //also chrome crashes if we make too many stores to localStorage, getting too much of a backlog.  even breaking into groups of 100 rows was too often
@@ -71,14 +73,11 @@ function storeResults(row){
 }
 
 function storeResultsToChromeStorage(){
-  chrome.storage.local.get(curr_run_results_name, function(obj){
-    var results = obj[curr_run_results_name];
-    var data = {};
-    results = results.concat(curr_results_block);
-    data[curr_run_results_name] = results;
-    chrome.storage.local.set(data);
-    curr_results_block = [];
-  });
+  var data = {};
+  data[curr_run_results_name+"_"+results_blocks_counter] = curr_results_block;
+  chrome.storage.local.set(data);
+  curr_results_block = [];
+  results_blocks_counter += 1;
 }
 
 function runHelper(program, index, row_so_far, push_results){
