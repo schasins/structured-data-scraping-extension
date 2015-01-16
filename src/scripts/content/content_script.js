@@ -39,6 +39,7 @@ document.addEventListener('keydown', outlineAdjustDown, true);
 document.addEventListener('keyup', outlineAdjustUp, true);
 document.addEventListener('click', listClick, true);
 document.addEventListener('click', nextButtonClick, true);
+document.addEventListener('click', captureClick, true);
 
 //for debugging purposes, print this tab's tab id
 utilities.listenForMessage("background", "content", "tabID", function(msg){tabID = msg; console.log("tab id: ", msg);});
@@ -793,7 +794,14 @@ function findNextButton(next_button_data){
 
 function stopProcessingCapture(){
   processing_capture = false; //controls color guide
-  additional_recording_handlers_on["capture"] = true;
+  additional_recording_handlers_on["capture"] = false;
+}
+
+function captureClick(event){
+  if (processing_capture){
+    event.stopPropagation();
+    event.preventDefault();
+  }
 }
 
 /**********************************************************************
