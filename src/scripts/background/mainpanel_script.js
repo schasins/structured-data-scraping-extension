@@ -20,8 +20,10 @@ function setUp(){
   $("#start_list").click(startProcessingList);
   $("#start_demonstration").click(startProcessingDemonstration);
   $("#run").click(run);
-  $("#download_results").click(download);
+  $("#download_results").click(function(){download(curr_run_results_name);});
   $("button").button();	
+  $( "#tabs" ).tabs();
+  $("#saved_results").click(function(){retrieveSavedResults();});
 
   chrome.storage.local.get("all_script_results", function(obj){
     var asr = obj.all_script_results;
@@ -411,18 +413,30 @@ function arrayOfArraysToTable(arrayOfArrays){
  * Saving results to file
  **********************************************************************/
 
-function download(){
+function download(name){
   console.log("Downloading.");
-  chrome.storage.local.get(curr_run_results_name, function(obj){
-    var results = obj[curr_run_results_name];
-    arrayOfArraysToText(results, function(results_text){
-      arrayOfArraysToCSV(results_text, function(csv_string){
-        var blob = new Blob([csv_string], { type: "text/csv;charset=utf-8" });
-        saveAs(blob, "relation_scraper_" + curr_run_results_name + ".csv");
+  var full_csv_string = "";
+  var blockRetrieval = function(name, counter){
+    var name_counter = name+"_"+counter;
+    chrome.storage.local.get(name_counter, function(obj){
+      var results = obj[name_counter];
+      if (!results){
+        //retrieved all the data we have
+        var blob = new Blob([full_csv_string], { type: "text/csv;charset=utf-8" });
+        saveAs(blob, "relation_scraper_" + name + ".csv");
         console.log("Saved.");
-      });
+      }
+      else{
+        arrayOfArraysToText(results, function(results_text){
+          arrayOfArraysToCSV(results_text, function(csv_string){
+            full_csv_string += csv_string; //append the new data
+            blockRetrieval(name, counter+1);
+          });
+        }); 
+      }
     });
-  });
+  };
+  blockRetrieval(name,0);
 }
 
 function arrayOfArraysToCSV(content, continuation){
@@ -718,4 +732,24 @@ function processWait(event){
   var $target = $(event.target);
   var wait = $target.val();
   current_list["wait"] = parseInt(wait);
+}
+
+/**********************************************************************
+ * Retrieving saved results
+ **********************************************************************/
+
+function retrieveSavedResults(){
+  //recall we have var all_script_results that's always up to date with current list of saved results
+  //if ever start allowing parallel stuff (maybe by sync), will have to retrieve this from storage, rather than rely on global var
+
+  var div = $("#saved_results_list");
+  div.html("");
+  for (var i = 0; i<all_script_results.length; i++){
+    (function() {
+      var key = all_script_results[i];
+      var newItem = $("<div class='saved_spec'>"+key+"</div>"); 
+      newItem.click(function(){download(key);});
+      div.append(newItem);
+    }()); //faking block scope
+  }
 }

@@ -1,5 +1,5 @@
 <html>
- 
+
 <head>
 	<script type="text/javascript" src="../scripts/lib/jquery.js"></script>
 	<script type="text/javascript" src="../scripts/lib/jquery_csv.js"></script>
@@ -26,48 +26,62 @@
 	
 </head>
 <body>
-<div id="top_buttons_wrapper" class="clear">
-<div id="top_buttons" class="clear">
- <button id="run">Run</button>
- <button id="start_list" class="top_button left">Demonstrate List</button>
- <button id="start_demonstration" class="top_button right">Demonstrate Interaction</button>
- <button id="download_results">Download Results</button>
-</div>
-</div>
+	<div id="tabs">
+		
+		<ul>
+			<li><a href="#tabs-1" id="make_scripts">Make New Scripts</a></li>
+			<li><a href="#tabs-2" id="saved_results">Saved Results</a></li>
+		</ul>
 
- <div id="result_table_div" class="clear">
- </div>
+		<div id="tabs-1">
+			<div id="top_buttons_wrapper" class="clear">
+				<div id="top_buttons" class="clear">
+					<button id="run">Run</button>
+					<button id="start_list" class="top_button left">Demonstrate List</button>
+					<button id="start_demonstration" class="top_button right">Demonstrate Interaction</button>
+					<button id="download_results">Download Results</button>
+				</div>
+			</div>
 
- <div id="new_list" style="display: none;">
-	 <button class="done right">Done</button>
-	 <button class="cancel right">Cancel</button>
-	  <div class="buttonset clear">
-		<input class="radio" type="radio" id="next_button" name="radio"><label for="next_button">Next Button</label>
-		<input class="radio" type="radio" id="more_button" name="radio"><label for="more_button">More Button</label>
-		<input class="radio" type="radio" id="scroll_for_more" name="radio"><label for="scroll_for_more">Scroll For More</label>
-	  </div>
-	  <form name="itemLimit">
-		Limit on items to collect: <input type="text" class="itemLimit" placeholder="100000">
-	  </form>
-	  <form name="wait">
-		Milliseconds to wait between scraping items: <input type="text" class="wait" placeholder="0">
-	  </form>
-		<button class="done_with_first_row">Done with first row</button>
-	  <div class="list">Click on a few list items, and we'll show the full list here.  If you change your mind about including a list item, just click it again to remove it.</div>
- </div>
- 
-  <div id="new_demonstration" style="display: none;">
-	  <div>
-		 <button class="start_recording">Start Recording</button>
-		 <button class="done_recording">Done Recording</button>
-		 <button class="cancel_recording">Cancel Recording</button>
-	  </div>
-	  <div>
-		 <button class="start_capturing">Start Capturing</button>
-		 <button class="stop_capturing">Stop Capturing</button>
-	  </div>
-	  <div id="captured_texts"></div>
- </div>
- 
+			<div id="result_table_div" class="clear">
+			</div>
+
+			<div id="new_list" style="display: none;">
+				<button class="done right">Done</button>
+				<button class="cancel right">Cancel</button>
+				<div class="buttonset clear">
+					<input class="radio" type="radio" id="next_button" name="radio"><label for="next_button">Next Button</label>
+					<input class="radio" type="radio" id="more_button" name="radio"><label for="more_button">More Button</label>
+					<input class="radio" type="radio" id="scroll_for_more" name="radio"><label for="scroll_for_more">Scroll For More</label>
+				</div>
+				<form name="itemLimit">
+					Limit on items to collect: <input type="text" class="itemLimit" placeholder="100000">
+				</form>
+				<form name="wait">
+					Milliseconds to wait between scraping items: <input type="text" class="wait" placeholder="0">
+				</form>
+				<button class="done_with_first_row">Done with first row</button>
+				<div class="list">Click on a few list items, and we'll show the full list here.  If you change your mind about including a list item, just click it again to remove it.</div>
+			</div>
+
+			<div id="new_demonstration" style="display: none;">
+				<div>
+					<button class="start_recording">Start Recording</button>
+					<button class="done_recording">Done Recording</button>
+					<button class="cancel_recording">Cancel Recording</button>
+				</div>
+				<div>
+					<button class="start_capturing">Start Capturing</button>
+					<button class="stop_capturing">Stop Capturing</button>
+				</div>
+				<div id="captured_texts"></div>
+			</div>
+		</div>
+
+		<div id="tabs-2">
+			<div id="saved_results_list"></div>
+		</div>
+
+	</div>
 </body>
 </html>
