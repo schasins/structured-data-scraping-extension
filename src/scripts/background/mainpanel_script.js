@@ -68,9 +68,12 @@ function run(){
 function storeResults(row){
   curr_results_block.push(row);
   if (curr_results_block.length === 10000) {
+    downloadOneBlock(curr_results_block, curr_run_results_name, results_blocks_counter);
     storeResultsToChromeStorage();
     //breaking data into chunks of 100 rows keeps mem load low, but also reduces calls to chrome storage, which gets backed up if we try to update on every row
     //also chrome crashes if we make too many stores to localStorage, getting too much of a backlog.  even breaking into groups of 100 rows was too often
+
+    //let's also download, since so many problems try to make the whole thing
   }
 }
 
@@ -465,6 +468,16 @@ function arrayOfArraysToCSVHelper(content, continuation, finalVal, index){
   }
 
   continuation(finalVal);
+}
+
+function downloadOneBlock(results, name, block_num){
+  arrayOfArraysToText(results, function(results_text){
+          arrayOfArraysToCSV(results_text, function(csv_string){
+            var blob = new Blob([csv_string], { type: "text/csv;charset=utf-8" });
+            saveAs(blob, "relation_scraper_" + name + "_" + block_num + ".csv");
+            console.log("Saved.");
+          });
+        }); 
 }
 
 /**********************************************************************

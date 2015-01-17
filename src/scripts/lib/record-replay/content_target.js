@@ -177,6 +177,7 @@ var saveTargetInfo;
 	console.log("targetInfo", targetInfo);
     var targets = getTargetFunction(targetInfo);
     if (!targets) {
+      console.log("No target found.");
       log.debug('No target found');
       return null;
     } else if (targets.length > 1) {

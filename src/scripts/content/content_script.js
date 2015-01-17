@@ -798,7 +798,7 @@ function stopProcessingCapture(){
 }
 
 function captureClick(event){
-  if (processing_capture){
+  if (additional_recording_handlers_on["capture"]){
     event.stopPropagation();
     event.preventDefault();
   }
