@@ -8,7 +8,7 @@ To see WebCombine in action, check out the video demo:
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=rupkOcUumUk
 " target="_blank"><img src="http://img.youtube.com/vi/rupkOcUumUk/0.jpg" 
-alt="WebCombine video demo" width="240" height="180" border="10" /></a>
+alt="WebCombine video demo" /></a>
 
 <h2>Directions</h2>
 
