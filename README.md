@@ -1,10 +1,10 @@
-<h2>Overview</h2>
+<h2>WebCombine Overview</h2>
 
 This Chrome extension was built to empower non-programmers to scrape data from the web.  Rather than write code in a scraping language, users demonstrate how they would collect their data if they were going to scrape it by hand.  They fill out the first row of a spreadsheet, and the tool fills out the rest.
 
 The tool currently targets relational data and pages with consistent structures.
 
-To see the tool in action, check out [the video demo](https://www.youtube.com/watch?v=nGU5yN2NZ-I).
+To see WebCombine in action, check out [the video demo](https://www.youtube.com/watch?v=nGU5yN2NZ-I).
 
 <h2>Directions</h2>
 
