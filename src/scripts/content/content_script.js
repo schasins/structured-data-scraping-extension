@@ -206,7 +206,9 @@ function getAllCandidates(){
           candidate_subitems.push(nodes[0]);
         }
       }
-      list.push(candidate_subitems);
+      if (candidate_subitems.length > 0){
+        list.push(candidate_subitems);
+      }
     }
   }
   if (exclude_first && list.length > 0){
@@ -778,7 +780,8 @@ function findNextButton(next_button_data){
  **********************************************************************/
 
  $(function(){
-  additional_recording_handlers["capture"] = function(node){
+  additional_recording_handlers.capture = function(node, eventData){
+    if (eventData.type !== "click") {return null;} //only care about clicks
     var data = {"text": nodeToText(node), "xpath": nodeToXPath(node)};
     utilities.sendMessage("content", "mainpanel", "capturedData", data);
     console.log("capture", data);
@@ -789,16 +792,16 @@ function findNextButton(next_button_data){
  function startProcessingCapture(){
   processing_capture = true; //controls color guide
   //TODO: decide whether actions during capture should have their usual effects
-  additional_recording_handlers_on["capture"] = true;
+  additional_recording_handlers_on.capture = true;
 }
 
 function stopProcessingCapture(){
   processing_capture = false; //controls color guide
-  additional_recording_handlers_on["capture"] = false;
+  additional_recording_handlers_on.capture = false;
 }
 
 function captureClick(event){
-  if (additional_recording_handlers_on["capture"]){
+  if (additional_recording_handlers_on.capture){
     event.stopPropagation();
     event.preventDefault();
   }

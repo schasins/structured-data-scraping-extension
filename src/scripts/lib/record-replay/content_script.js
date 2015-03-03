@@ -219,8 +219,10 @@ function recordEvent(eventData) {
 	  if (!additional_recording_handlers_on[key]){continue;}
 	  console.log("record", key);
 	  var handler = additional_recording_handlers[key];
-	  var ret_val = handler(target);
-	  eventMessage["additional"][key] = ret_val;
+	  var ret_val = handler(target,eventData);
+    if (ret_val !== null){
+      eventMessage["additional"][key] = ret_val;
+    }
   }
 
   /* save the event record */

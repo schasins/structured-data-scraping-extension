@@ -8,6 +8,10 @@ function ParameterizedTrace(trace){
 		original_value = original_value.toUpperCase();
 		for (var i = 0; i< trace.length; i++){
 			if (trace[i].type !== "dom"){ continue;}
+			if (trace[i].target.xpath.name){
+				//this one has already been converted to an object, parameterized
+				return;
+			}
 			var xpath = trace[i].target.xpath.toUpperCase();
 			if (xpath === original_value){
 				console.log("putting a hole in for an xpath", original_value);

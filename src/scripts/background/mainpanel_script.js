@@ -636,7 +636,7 @@ function openTabSequenceFromTrace(trace){
 }
 
 function stopProcessingList(){
-	if (current_list["first_items"]){first_row = first_row.concat(current_list["first_items"]);}
+	if (current_list.first_items){first_row = first_row.concat(current_list.first_items);}
   // if current_list.tab_id appears in the previous demonstration's events anywhere, 
   // must find the correct tab in the replay-time events at replay-time
   if (program.length > 1){
@@ -678,13 +678,13 @@ function processSelectorAndListData(data){
   current_list.tab_info.id = data.tab_id;
   utilities.sendMessage("mainpanel", "content", "stopProcessingList", "", null, null, null, [data.tab_id]);
   //store the new selector with the program's list object
-  current_list["selector"] = data["selector"];
+  current_list.selector = data.selector;
   //display the list so the user gets feedback
   //recall that data["list"] is a list of xpath, text pairs, where
   //the text item is a list of node texts
-  current_list["demo_list"] = _.map(data["list"], function(a){return _.pluck(a,"text");});
-  current_list["first_xpaths"] = _.pluck(data["list"][0],"xpath");
-  if (data["list"].length > 0) {current_list["first_row_elems"] = current_list["demo_list"][0]; current_list["first_items"] = data["list"][0];}
+  current_list.demo_list = _.map(data.list, function(a){return _.pluck(a,"text");});
+  current_list.first_xpaths = _.pluck(data.list[0],"xpath");
+  if (data.list.length > 0) {current_list.first_row_elems = current_list.demo_list[0]; current_list.first_items = data.list[0];}
   //TODO tabs: also need to put the list's tab or frame data into the current_list
   //we'll use it to parameterize any following demos
   //but will also use it to figure out where to send list messages (see below)
@@ -695,7 +695,7 @@ function processSelectorAndListData(data){
     var contentString = arrayOfArraysToTable(contentText);
     $listDiv.html(contentString);
   }
-  var contentText = arrayOfArraysToText(data["list"], continuation);
+  var contentText = arrayOfArraysToText(data.list, continuation);
 }
 
 function stopProcessingFirstRow(){
@@ -709,7 +709,7 @@ function processNextButtonData(data){
   current_list.tab_info.id = data.tab_id;
   utilities.sendMessage("mainpanel", "content", "stopProcessingList", "", null, null, null, [data.tab_id]);
   //store the next button data with the program's list object
-  var next_button_data = current_list["next_button_data"];
+  var next_button_data = current_list.next_button_data;
   //keys should be tag, text, id, and xpath
   for (var k in data){
    next_button_data[k] = data[k];
