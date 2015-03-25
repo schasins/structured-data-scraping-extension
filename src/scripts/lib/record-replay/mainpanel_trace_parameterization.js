@@ -155,6 +155,7 @@ function ParameterizedTrace(trace){
 				if (xpath["name"]){
 					console.log("Correcting xpath to ", xpath["value"]);
 					cloned_trace[i].target.xpath = xpath["value"];
+					cloned_trace[i].target.useXpathOnly = true;
 				}
 			}
 			else if (cloned_trace[i].type === "string_parameterize"){

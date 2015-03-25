@@ -276,6 +276,13 @@ function getFeatures(element){
     if (! targetInfo){
       return null;
     }
+    //we have a useXpathOnly flag set to true when the top level has parameterized on xpath, and normal node addressing approach should be ignored
+    if (targetInfo.useXpathOnly){
+      var nodes = xPathToNodes(targetInfo.xpath);
+      if (nodes.length > 0){
+        return nodes[0];
+      }
+    }
     var features = targetInfo.snapshot;
     return getTargetForSimilarity(features);
   }
