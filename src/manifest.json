@@ -43,6 +43,7 @@
 								"scripts/lib/jquery.js", 
 								"scripts/lib/underscore-min.js", 
 								"scripts/lib/underscore-min.map",
+                "scripts/lib/record-replay/content_dom.js",
 								"scripts/lib/record-replay/content_injected.js",
 								"scripts/lib/record-replay/common_params.js",
 								"scripts/lib/record-replay/common_logging.js"
