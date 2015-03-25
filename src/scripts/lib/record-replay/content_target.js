@@ -42,18 +42,36 @@ function getFeature(element, feature){
 }
 
 function getFeatures(element){
-    var info = {};
-    info.xpath = nodeToXPath(element);
+  var info = {};
+  info.xpath = nodeToXPath(element);
   for (var prop in element) {
     if (element.hasOwnProperty(prop)) {
       info[prop] = element.prop;
     }
   }
-  info.textContent = element.textContent;
+
+  var text = element.textContent;
+  info.textContent = text;
+  var trimmedText = text.trim();
+  info.firstWord = trimmedText.slice(0,trimmedText.indexOf(" "));
+  info.lastWord = trimmedText.slice(trimmedText.lastIndexOf(" "),trimmedText.length);
+  var colonIndex = trimmedText.indexOf(":")
+  if (colonIndex > -1){
+    info.preColonText = trimmedText.slice(0,colonIndex);
+  }
+  var children = element.childNodes;
+  var l = children.length;
+  for (var i = 0; i< l; i++){
+    var childText = children[i].textContent;
+    info["child"+i+"text"] = childText;
+    info["lastChild"+(l-i)+"text"] = childText;
+  }
+
   var prev = element.previousElementSibling;
   if (prev !== null){
     info.previousElementSiblingText = prev.textContent;
   }
+
   var boundingBox = element.getBoundingClientRect();
   for (var prop in boundingBox) {
     if (boundingBox.hasOwnProperty(prop)) {
@@ -280,11 +298,14 @@ function getFeatures(element){
     if (targetInfo.useXpathOnly){
       var nodes = xPathToNodes(targetInfo.xpath);
       if (nodes.length > 0){
+        console.log("using pure xpath: ", nodes[0]);
         return nodes[0];
       }
     }
     var features = targetInfo.snapshot;
-    return getTargetForSimilarity(features);
+    var winningNode = getTargetForSimilarity(features);
+    console.log("winningNode: ", winningNode);
+    return winningNode;
   }
 
   /* List of all target functions. Used for benchmarking */
