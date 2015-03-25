@@ -46,7 +46,11 @@ function getFeatures(element){
   info.xpath = nodeToXPath(element);
   for (var prop in element) {
     if (element.hasOwnProperty(prop)) {
-      info[prop] = element.prop;
+      var val = element[prop];
+      if (val !== null && typeof val === 'object'){
+        val = val.toString();
+      }
+      info[prop] = val;
     }
   }
 
@@ -267,8 +271,17 @@ function getFeatures(element){
   };
   */
 
+  function getAllSimilarityCandidates(targetInfo){
+    var tagName = "*";
+    if (targetInfo.nodeName){
+      tagName = targetInfo.nodeName;
+    }
+    return document.getElementsByTagName(tagName);
+  }
+
   var getTargetForSimilarity = function(targetInfo) {
-    var candidates = getAllCandidates();
+    var candidates = getAllSimilarityCandidates(targetInfo);
+    
     var bestScore = -1;
     var bestNode = null;
     for (var i = 0; i<candidates.length; i++){
