@@ -276,13 +276,12 @@ function getFeatures(element){
     if (! targetInfo){
       return null;
     }
-    var nodes = xPathToNodes(targetInfo.xpath);
     //we have a useXpathOnly flag set to true when the top level has parameterized on xpath, and normal node addressing approach should be ignored
-    //but also if there is node with exactly the target xpath, go ahead and use it without running similarity stuff
-    //this is for speed, but might be something we should change later
-    //maybe at least we should require the text to be the same?
-    if (nodes.length > 0 && targetInfo.useXpathOnly){
-      return nodes[0];
+    if (targetInfo.useXpathOnly){
+      var nodes = xPathToNodes(targetInfo.xpath);
+      if (nodes.length > 0){
+        return nodes[0];
+      }
     }
     var features = targetInfo.snapshot;
     return getTargetForSimilarity(features);
