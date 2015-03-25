@@ -11,11 +11,70 @@ var saveTargetInfo;
 (function() {
   var log = getLog('target');
 
+var all_features = ["tag", "class", "id",
+ "left", "top", "width", "height",
+ "font-size", "font-family", "font-style", "font-weight", "color",
+ "background-color", "background-image", "opacity", "z-index",
+ "preceding-text",
+ "xpath"];
+
+function getFeature(element, feature){
+  if (feature === "xpath"){
+    return nodeToXPath(element);
+  }
+  else if (feature === "id"){
+    return element.id;
+  }
+  else if (feature === "preceding-text"){
+    return $(element).prev().text();
+  }
+  else if (_.contains(["tag","class"],feature)){
+    return element[feature+"Name"];
+  }
+  else if (_.contains(["top", "right", "bottom", "left", "width", "height"], feature)){
+    var rect = element.getBoundingClientRect();
+    return rect[feature];
+  }
+  else{
+    var style = window.getComputedStyle(element, null);
+    return style.getPropertyValue(feature);
+  }
+}
+
+function getFeatures(element){
+    var info = {};
+    info.xpath = nodeToXPath(element);
+  for (var prop in element) {
+    if (element.hasOwnProperty(prop)) {
+      info[prop] = element.prop;
+    }
+  }
+  info.textContent = element.textContent;
+  var prev = element.previousElementSibling;
+  if (prev !== null){
+    info.previousElementSiblingText = prev.textContent;
+  }
+  var boundingBox = element.getBoundingClientRect();
+  for (var prop in boundingBox) {
+    if (boundingBox.hasOwnProperty(prop)) {
+      info[prop] = boundingBox.prop;
+    }
+  }
+  var style = window.getComputedStyle(element, null);
+  for (var i = 0; i < style.length; i++) {
+    var prop = style[i];
+    info[prop] = style.getPropertyValue(prop);
+  }
+  return info;
+}
+
   /* Store information about the DOM node */
   saveTargetInfo = function _saveTargetInfo(target, recording) {
     var targetInfo = {};
     targetInfo.xpath = nodeToXPath(target);
-    targetInfo.snapshot = snapshotNode(target);
+    //change this line to change node addressing approach
+    //targetInfo.snapshot = snapshotNode(target);
+    targetInfo.snapshot = getFeatures(target);
     if (recording == RecordState.RECORDING) {
       targetInfo.branch = snapshotBranch(target);
     }
@@ -173,6 +232,7 @@ var saveTargetInfo;
 
   /* Given the target info, produce a single target DOM node. May get several
    * possible candidates, and would just return the first candidate. */
+   /*
   getTarget = function(targetInfo) {
 	console.log("targetInfo", targetInfo);
     var targets = getTargetFunction(targetInfo);
@@ -187,6 +247,38 @@ var saveTargetInfo;
       return targets[0];
     }
   };
+  */
+
+  var getTargetForSimilarity = function(targetInfo) {
+    var candidates = getAllCandidates();
+    var bestScore = -1;
+    var bestNode = null;
+    for (var i = 0; i<candidates.length; i++){
+  var info = getFeatures(candidates[i]);
+  var similarityCount = 0;
+  for (var prop in targetInfo) {
+    if (targetInfo.hasOwnProperty(prop)) {
+      if (targetInfo[prop] === info[prop]){
+              similarityCount += 1;
+      }
+    }
+  }
+  if (similarityCount > bestScore){
+    bestScore = similarityCount;
+    bestNode = candidates[i];
+  }
+    }
+    return bestNode;
+  };
+
+  getTarget = function(targetInfo) {
+    console.log("targetInfo", targetInfo);
+    if (! targetInfo){
+      return null;
+    }
+    var features = targetInfo.snapshot;
+    return getTargetForSimilarity(features);
+  }
 
   /* List of all target functions. Used for benchmarking */
   targetFunctions = {
