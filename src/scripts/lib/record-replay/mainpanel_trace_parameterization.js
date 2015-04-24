@@ -109,12 +109,18 @@ function ParameterizedTrace(trace){
 	/* frame parameterization */
 	
 	this.parameterizeFrame = function(parameter_name, original_value) {
+		console.log("parameterizing frame ",parameter_name, original_value);
 		frames[parameter_name] = {original_value: original_value};
 	};
 
 	this.useFrame = function(parameter_name, value) {
 		if(value === null){
 			console.log("Freak out.");
+		}
+		if (!frames[parameter_name]){
+			console.log("!frames[parameter_name]");
+			console.log(parameter_name, value);
+			console.log(this);
 		}
 		frames[parameter_name]["value"] = value;
 	};

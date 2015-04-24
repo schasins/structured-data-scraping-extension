@@ -42,17 +42,29 @@ function getFeature(element, feature){
 }
 
 function getFeatures(element){
+function getFeatures(element){
   var info = {};
   info.xpath = nodeToXPath(element);
   for (var prop in element) {
-    if (element.hasOwnProperty(prop)) {
+    try{
       var val = element[prop];
-      if (val !== null && typeof val === 'object'){
-        val = val.toString();
       }
-      info[prop] = val;
+    catch(err){
+      continue;
     }
-  }
+    if (val !== null && typeof val === 'object'){
+        try{
+          val = val.toString(); //sometimes get that toString not allowed
+        }
+        catch(err){
+          continue;
+        }
+    }
+    else if (typeof val === 'function'){
+      continue;
+    }
+    info[prop] = val;
+  } //test
 
   var text = element.textContent;
   info.textContent = text;
