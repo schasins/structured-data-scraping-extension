@@ -42,7 +42,6 @@ function getFeature(element, feature){
 }
 
 function getFeatures(element){
-function getFeatures(element){
   var info = {};
   info.xpath = nodeToXPath(element);
   for (var prop in element) {

@@ -138,11 +138,14 @@ var TimeoutStrategy = {
     }
   };
 
+  var ctrlOnlyEvents = ["mouseover"];
+
   /* There are a lot of random parameters, too many for comments. Best way to
    * figure out what a parameter does, is to grep for that parameter in the
    * source code. */
   defaultParams = {
     events: events,
+    ctrlOnlyEvents: ctrlOnlyEvents,
     defaultProps: defaultProps,
     panel: {
       enableEdit: true,
