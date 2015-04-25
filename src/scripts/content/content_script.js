@@ -205,6 +205,9 @@ function getAllCandidates(){
         if (nodes.length > 0){
           candidate_subitems.push(nodes[0]);
         }
+        else{
+          candidate_subitems.push(null);
+        }
       }
       if (candidate_subitems.length > 0){
         list.push(candidate_subitems);
@@ -336,6 +339,9 @@ function listClick(event){
 }
 
 function nodeToMainpanelNodeRepresentation(node){
+  if (node === null){
+    return {"text": "", "xpath": "", "frame": SimpleRecord.getFrameId()};
+  }
   return {"text": nodeToText(node), "xpath": nodeToXPath(node), "frame": SimpleRecord.getFrameId()};
 }
 
@@ -827,6 +833,7 @@ function highlightCurrent(arrayOfArrays){
   for (var i = 0; i < arrayOfArrays.length ; i++){
     for (var j = 0; j < arrayOfArrays[i].length; j++){
       var node = arrayOfArrays[i][j];
+      if (node === null){continue;}
       //TODO: first make sure there is a color in j, add one if there isn't
       highlightNodeC(node, colors[j]);
     }

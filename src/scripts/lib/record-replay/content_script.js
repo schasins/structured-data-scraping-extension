@@ -110,7 +110,7 @@ function recordEvent(eventData) {
   var dispatchType = getEventType(type);
   var shouldRecord = params.events[dispatchType][type];
   if (params.ctrlOnlyEvents.indexOf(type) > -1 && !eventData.ctrlKey){
-    console.log("Ignoring "+type+" because CTRL key not down.");
+    //console.log("Ignoring "+type+" because CTRL key not down.");
     shouldRecord = false;
   }
 

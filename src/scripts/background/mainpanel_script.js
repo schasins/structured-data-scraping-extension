@@ -125,6 +125,7 @@ function runDemonstration(program, index, row_so_far){
   //let's start with cleanup.  if this is a demo at index 1, close all tabs
   //opened so far since we'll never need them again
   //somewhat hacky approach, but it'll do for now
+  /*
   var opened_tabs = [];
   if (index === 1){
     for (var i = 0; i < program.length; i++){
@@ -135,6 +136,14 @@ function runDemonstration(program, index, row_so_far){
         opened_tabs = opened_tabs.concat(tabIDs);
       }
     }
+  }
+  chrome.tabs.remove(opened_tabs);
+  */
+  var opened_tabs = [];
+  if (program[index].type === "demonstration"){
+    var trace = program[index].most_recent_trace;
+    var tabIDs = openTabSequenceFromTrace(trace);
+    opened_tabs = opened_tabs.concat(tabIDs);
   }
   chrome.tabs.remove(opened_tabs);
 
