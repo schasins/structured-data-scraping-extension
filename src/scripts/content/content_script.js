@@ -198,6 +198,7 @@ function getAllCandidates(){
       console.log(candidate);
       var candidate_subitems = [];
       var candidate_xpath = xPathToXPathList(nodeToXPath(candidate));
+      var null_subitems = 0;
       for (var j = 0; j < suffixes.length; j++){
         var xpath = candidate_xpath.concat(suffixes[j]);
         var xpath_string = xPathToString(xpath);
@@ -206,10 +207,11 @@ function getAllCandidates(){
           candidate_subitems.push(nodes[0]);
         }
         else{
+          null_subitems += 1;
           candidate_subitems.push(null);
         }
       }
-      if (candidate_subitems.length > 0){
+      if (candidate_subitems.length > 0 && candidate_subitems.length > null_subitems){
         list.push(candidate_subitems);
       }
     }
@@ -328,7 +330,7 @@ function listClick(event){
   //highlight our new list and send it to the panel
   highlightCurrent(current_selector_nodes);
   //recall current_selector_nodes is a list of lists
-  var textList = _.map(current_selector_nodes, function(nodes){return _.map(nodes, nodeToMainpanelNodeRepresentation);});
+  var textList = _.map(current_selector_nodes, function(nodes){return _.map(nodes, function(node){return nodeToMainpanelNodeRepresentation(node);});});
   console.log("textList ", textList);
   var data = {"selector":current_selector,"list":textList,"frame_id":SimpleRecord.getFrameId()};
   utilities.sendMessage("content", "mainpanel", "selectorAndListData", data);
@@ -338,11 +340,12 @@ function listClick(event){
   console.log(current_selector_nodes);
 }
 
-function nodeToMainpanelNodeRepresentation(node){
+function nodeToMainpanelNodeRepresentation(node,parameterize){
+  if(typeof(parameterize)==='undefined') {parameterize = true;}
   if (node === null){
-    return {"text": "", "xpath": "", "frame": SimpleRecord.getFrameId()};
+    return {text: "", xpath: "", frame: SimpleRecord.getFrameId(), parameterize:parameterize};
   }
-  return {"text": nodeToText(node), "xpath": nodeToXPath(node), "frame": SimpleRecord.getFrameId()};
+  return {text: nodeToText(node), xpath: nodeToXPath(node), frame: SimpleRecord.getFrameId(), parameterize: parameterize};
 }
 
 function nodeToText(node){
@@ -682,7 +685,7 @@ function xPathToString(xpath_list){
   clearHighlights();
   current_selector_nodes = interpretListSelector(selector["dict"], selector["exclude_first"], selector["suffixes"]);
   highlightCurrent(current_selector_nodes);
-  list = _.map(current_selector_nodes, function(nodes){return _.map(nodes, nodeToMainpanelNodeRepresentation);});
+  list = _.map(current_selector_nodes, function(nodes){return _.map(nodes, function(node){return nodeToMainpanelNodeRepresentation(node);});});
   list = _.filter(list, function(row){return row.length !== 0;}); //TODO schasins: is this a reasonable filter?
   return list;
 }
@@ -799,7 +802,7 @@ function findNextButton(next_button_data){
  $(function(){
   additional_recording_handlers.capture = function(node, eventData){
     if (eventData.type !== "click") {return null;} //only care about clicks
-    var data = {"text": nodeToText(node), "xpath": nodeToXPath(node)};
+    var data = nodeToMainpanelNodeRepresentation(node,false);
     utilities.sendMessage("content", "mainpanel", "capturedData", data);
     console.log("capture", data);
     return data;

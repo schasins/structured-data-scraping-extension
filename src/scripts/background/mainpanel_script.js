@@ -67,7 +67,7 @@ function run(){
 
 function storeResults(row){
   curr_results_block.push(row);
-  if (curr_results_block.length === 10000) {
+  if (curr_results_block.length === 5000) {
     downloadOneBlock(curr_results_block, curr_run_results_name, results_blocks_counter);
     storeResultsToChromeStorage();
     //breaking data into chunks of 100 rows keeps mem load low, but also reduces calls to chrome storage, which gets backed up if we try to update on every row
@@ -152,6 +152,9 @@ function runDemonstration(program, index, row_so_far){
   var parameterized_trace = curr_program.parameterized_trace;
   
   for (var i = 0; i < row_so_far.length; i++){
+    if (!row_so_far[i].parameterize){
+      continue; //don't want to parameterize on texts captured during recorded interactions
+    }
     //use current row's xpaths as arguments to parameterized trace
     var xpath = row_so_far[i].xpath;
     parameterized_trace.useXpath("xpath_"+i.toString(), xpath);
@@ -367,15 +370,15 @@ function resultsViewSetup(){
 }
 
 function resultsView(new_row){
-  if (len_results <= 2000){
+  if (len_results <= 1000){
     var table = $("#result_table");
     var array_of_texts = arrayOfMainpanelObjectsToArrayOfTexts(new_row);
     var table_row = arrayOfTextsToTableRow(array_of_texts);
     table.append(table_row);
   }
-  if (len_results === 2000){
+  if (len_results === 1000){
     var div = $("#result_table_div");
-    div.append($("<p>Showing the first 2,000 rows of data.  To see the full data set, click 'Download Results.'</p>"));
+    div.append($("<p>Showing the first 1,000 rows of data.  To see the full data set, click 'Download Results.'</p>"));
   }
 }
 
@@ -521,8 +524,16 @@ function doneRecording(){
   
   //TODO tabs: also get the recent_list's tab or frame ids, parameterize on that
   //should probably be tab, since frame may change as next button is clicked
+
+  //search the trace for any captured data, add that to the first row
+  var items = capturesFromTrace(trace);
+  current_demonstration["first_row_elems"] = _.pluck(items, "text");
+  first_row = first_row.concat(items);
   
   for (var i = 0; i<first_row.length; i++){
+    if (!first_row[i].parameterize){
+      continue; //don't want to parameterize on texts captured during recorded interactions
+    }
     //get xpaths from the first row so far, parameterize on that
     var xpath = first_row[i].xpath;
     current_demonstration["parameterized_trace"].parameterizeXpath("xpath_"+i.toString(), xpath);
@@ -535,11 +546,6 @@ function doneRecording(){
     var frame = first_row[i]["frame"];
     current_demonstration["parameterized_trace"].parameterizeFrame("frame_"+i.toString(), frame);
   }
-  
-  //search the trace for any captured data, add that to the first row
-  var items = capturesFromTrace(trace);
-  current_demonstration["first_row_elems"] = _.pluck(items, "text");
-  first_row.concat(items);
   
   console.log("trace", trace);
   console.log("trace", _.filter(trace, function(obj){return obj.type === "dom";}));
@@ -556,10 +562,10 @@ function capturesFromTrace(trace){
     if (additional["capture"]){
       var c = additional["capture"];
       //only want one text per node, even though click on same node, for instance, has 3 events
-      captured_nodes[c.xpath] = c.text;
+      captured_nodes[c.xpath] = c;
     }
   }
-  var items = _.map(captured_nodes, function(val,key){return {"text": val, "xpath": key};});
+  var items = _.map(captured_nodes, function(val,key){return val;});
   return items;
 }
 
