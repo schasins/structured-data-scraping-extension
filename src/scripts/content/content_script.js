@@ -744,8 +744,14 @@ function getMoreItems(data){
       send_not_done(list_so_far);
     }
   }
+  else if (next_button_type === "no_more"){
+    var list_so_far = useSelector(selector);
+    send_done(list_so_far);
+  }
   else{
-    console.log("Failure.  Don't know how to produce items because don't know next button type.");
+    console.log("Failure.  Don't know how to produce items because don't know next button type.  Guessing we just want the current page items.");
+    var list_so_far = useSelector(selector);
+    send_done(list_so_far);
   }
 }
 
