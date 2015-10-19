@@ -484,7 +484,7 @@ function simulate(events, startIndex) {
           document.defaultView, options.keyIdentifier, options.keyLocation,
           options.ctrlKey, options.altKey, options.shiftKey, options.metaKey);
 
-      var propsToSet = ['charCode', 'keyCode'];
+      var propsToSet = []; //['charCode', 'keyCode'];
 
       for (var j = 0, jj = propsToSet.length; j < jj; ++j) {
         var prop = propsToSet[j];
@@ -806,6 +806,6 @@ function injectScripts(paths) {
 
 // TODO(sbarman): need to wrap these so variables don't escape into the
 // enclosing scope
-injectScripts(["scripts/lib/record-replay/common_params.js", 
-               "scripts/lib/record-replay/content_dom.js",
-               "scripts/lib/record-replay/content_injected.js"]);
+//injectScripts(["scripts/lib/record-replay/common_params.js", 
+//               "scripts/lib/record-replay/content_dom.js",
+//               "scripts/lib/record-replay/content_injected.js"]);

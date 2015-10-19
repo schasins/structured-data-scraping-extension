@@ -642,6 +642,13 @@ function startProcessingList(){
   div.find(".buttonset").buttonset();
   div.find(".done").click(stopProcessingList);
   div.find(".cancel").click(cancelProcessingList);
+  div.find(".upload").click(uploadList);
+}
+
+function uploadList(){
+  var div = $("#result_table_div");
+  div.find("#demonstrate_list_ui").hide();
+  div.find("#upload_list_ui").show();
 }
 
 function openTabSequenceFromTrace(trace){

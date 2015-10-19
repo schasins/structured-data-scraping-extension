@@ -49,20 +49,34 @@
 			<div id="new_list" style="display: none;">
 				<button class="done right">Done</button>
 				<button class="cancel right">Cancel</button>
-				<div class="buttonset clear">
-					<input class="radio" type="radio" id="next_button" name="radio"><label for="next_button">Next Button</label>
-					<input class="radio" type="radio" id="more_button" name="radio"><label for="more_button">More Button</label>
-					<input class="radio" type="radio" id="scroll_for_more" name="radio"><label for="scroll_for_more">Scroll For More</label>
-					<input class="radio" type="radio" id="no_more" name="radio"><label for="no_more">No More</label>
+				<div>
+					<button class="upload">Upload List</button>
 				</div>
-				<form name="itemLimit">
-					Limit on items to collect: <input type="text" class="itemLimit" placeholder="100000">
-				</form>
-				<form name="wait">
-					Milliseconds to wait between scraping items: <input type="text" class="wait" placeholder="0">
-				</form>
-				<button class="done_with_first_row">Done with first row</button>
-				<div class="list">Click on a few list items, and we'll show the full list here.  If you change your mind about including a list item, just click it again to remove it.</div>
+
+				<div id="demonstrate_list_ui">
+					<div class="buttonset clear">
+						<input class="radio" type="radio" id="next_button" name="radio"><label for="next_button">Next Button</label>
+						<input class="radio" type="radio" id="more_button" name="radio"><label for="more_button">More Button</label>
+						<input class="radio" type="radio" id="scroll_for_more" name="radio"><label for="scroll_for_more">Scroll For More</label>
+						<input class="radio" type="radio" id="no_more" name="radio"><label for="no_more">No More</label>
+					</div>
+					<form name="itemLimit">
+						Limit on items to collect: <input type="text" class="itemLimit" placeholder="100000">
+					</form>
+					<form name="wait">
+						Milliseconds to wait between scraping items: <input type="text" class="wait" placeholder="0">
+					</form>
+					<button class="done_with_first_row">Done with first row</button>
+					<div class="list">Click on a few list items, and we'll show the full list here.  If you change your mind about including a list item, just click it again to remove it.</div>
+				</div>
+
+				<div id="upload_list_ui" style="display:none">
+					<input type="file" id="dataFile" name="dataFile" />
+					<output id="file-1"></output>
+					<table id="dataTable">	
+					</table>
+				</div>
+
 			</div>
 
 			<div id="new_demonstration" style="display: none;">

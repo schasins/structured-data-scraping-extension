@@ -1348,7 +1348,7 @@ var replayHandlers = {
 
 var handlers = {
   'alert': function(port, request) {
-    panel.addMessage('[' + port.name + '] ' + request.value);
+    //panel.addMessage('[' + port.name + '] ' + request.value);
   },
   'getRecording': function(port, request) {
     var recStatus = record.getStatus();
