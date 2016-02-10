@@ -25,6 +25,7 @@ function setUp(){
   $( "#tabs" ).tabs();
   $("#saved_results").click(function(){retrieveSavedResults();});
 
+
   chrome.storage.local.get("all_script_results", function(obj){
     var asr = obj.all_script_results;
     if (!asr){
@@ -241,6 +242,7 @@ function deepClone(arr){
     return null;
   }
   
+  // we still have items lined up.  use the next one
   var current_items = lrd.current_items;
   var counter = lrd.counter;
   if (counter < current_items.length){
@@ -249,14 +251,15 @@ function deepClone(arr){
     lrd.total_counter++;
     return ret;
   }
-  //we haven't yet retrieved any items, or we've run out
+
+  // we haven't yet retrieved any items, or we've run out
   
-  //if we can't find more, we're done
+  // if we can't find more, we're done
   if (lrd.no_more_items){
     console.log("Can't find any more items.");
     return null;
   }
-  //still waiting for items from the last call
+  // still waiting for items from the last call
   if (lrd.waiting_for_items){
     if (lrd.waiting_tries <= 20){
       console.log("Still waiting for items.");
@@ -264,8 +267,8 @@ function deepClone(arr){
       return wait;
     }
     else{
-      //we've been waiting a pretty long time
-      //seems like maybe the message didn't get through
+      // we've been waiting a pretty long time
+      // seems like maybe the message didn't get through
       console.log("Seems like the message maybe didn't get through.  Ask for more items.");
       lrd.skip_next = true;
     }
@@ -648,7 +651,30 @@ function startProcessingList(){
 function uploadList(){
   var div = $("#result_table_div");
   div.find("#demonstrate_list_ui").hide();
+  div.find("#upload_data_table").empty(); // clear out the table in case there was some data from a previous list
+  $('#upload_data').on("change", handleUploadedList); // and let's actually process changes
+  console.log(document.getElementById('files'));
   div.find("#upload_list_ui").show();
+}
+
+function handleUploadedList(){
+    console.log("New list uploaded.");
+    var fileReader = new FileReader();
+    fileReader.onload = function (event) {
+      var str = event.target.result;
+      // ok, we have the file contents
+      // let's display them, associate the list with the current list
+      var csvData = $.csv.toArrays(str);
+      var sampleData = csvData;
+      if (sampleData.length > 100) {
+        var sampleData = csvData.slice(0,100); // only going to show a sample
+        sampleData.push(new Array(csvData[0].length).fill("...")); // to indicate to user that it's a sample
+      }
+      var tableElement = arrayOfArraysToTable(sampleData);
+      $("#upload_data_table").append(tableElement);
+    }
+    // now that we know how to handle reading data, let's actually read some
+    fileReader.readAsText(event.target.files[0]);
 }
 
 function openTabSequenceFromTrace(trace){
