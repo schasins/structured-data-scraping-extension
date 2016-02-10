@@ -236,6 +236,14 @@ function deepClone(arr){
 
  function runListGetNextItem(program_list, program, index){
   console.log("runListGetNextItem");
+
+  // first let's check if this is an uploaded list, in which case we don't even need to go to the content script for anything
+  if (program_list.uploaded){
+    var ret = program_list.demo_list[lrd.total_counter]; // for upload case, the demo list actually has everything; just return the next item!
+    lrd.total_counter++;
+    return ret;
+  }
+
   //if we've passed the item limit, we're done
   if (lrd.total_counter >= (program_list.item_limit)){
     console.log("Collected enough data points.");
@@ -655,26 +663,7 @@ function uploadList(){
   $('#upload_data').on("change", handleUploadedList); // and let's actually process changes
   console.log(document.getElementById('files'));
   div.find("#upload_list_ui").show();
-}
-
-function handleUploadedList(){
-    console.log("New list uploaded.");
-    var fileReader = new FileReader();
-    fileReader.onload = function (event) {
-      var str = event.target.result;
-      // ok, we have the file contents
-      // let's display them, associate the list with the current list
-      var csvData = $.csv.toArrays(str);
-      var sampleData = csvData;
-      if (sampleData.length > 100) {
-        var sampleData = csvData.slice(0,100); // only going to show a sample
-        sampleData.push(new Array(csvData[0].length).fill("...")); // to indicate to user that it's a sample
-      }
-      var tableElement = arrayOfArraysToTable(sampleData);
-      $("#upload_data_table").append(tableElement);
-    }
-    // now that we know how to handle reading data, let's actually read some
-    fileReader.readAsText(event.target.files[0]);
+  utilities.sendMessage("mainpanel", "content", "stopProcessingList", "");
 }
 
 function openTabSequenceFromTrace(trace){
@@ -744,6 +733,35 @@ function processSelectorAndListData(data){
     $listDiv.html(contentString);
   }
   var contentText = arrayOfArraysToText(data.list, continuation);
+}
+
+/* Also for collecting list information, but from uploaded lists */
+
+function handleUploadedList(){
+    console.log("New list uploaded.");
+    var fileReader = new FileReader();
+    fileReader.onload = function (event) {
+      var str = event.target.result;
+      // ok, we have the file contents
+      // let's display them, associate the list with the current list
+      var csvData = $.csv.toArrays(str);
+
+      // display a sample
+      var sampleData = csvData;
+      if (sampleData.length > 100) {
+        var sampleData = csvData.slice(0,100); // only going to show a sample
+        sampleData.push(new Array(csvData[0].length).fill("...")); // to indicate to user that it's a sample
+      }
+      var tableElement = arrayOfArraysToTable(sampleData);
+      $("#upload_data_table").append(tableElement);
+
+      // actually store the data with our progrm
+      current_list.demo_list = csvData;
+      if (current_list.demo_list.length > 0) {current_list.first_row_elems = current_list.demo_list[0];}
+      current_list.uploaded = true;
+    }
+    // now that we know how to handle reading data, let's actually read some
+    fileReader.readAsText(event.target.files[0]);
 }
 
 function stopProcessingFirstRow(){
