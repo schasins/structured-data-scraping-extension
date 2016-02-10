@@ -837,13 +837,18 @@ function captureClick(event){
  * Helper functions
  **********************************************************************/
 
-var colors = ["#9EE4FF","#9EB3FF", "#BA9EFF", "#9EFFEA", "#E4FF9E", "#FFBA9E", "#FF8E61"];
+
+
+var colors = ["#9EE4FF","#9EC2FF", "#9EA9FF", "#AB9EFF", "#B99EFF", "#D39EFF", "#E79EFF", "#FF9EFD","#FF9EE2", "#FF9EC2", "#FF9E9E", "#FFAE9E", "#FFCB9E", "#FFE89E", "#F2FF9E","#D8FF9E", "#BDFF9E", "#9EFFBB", "#9EFFD2", "#9EFFED"];
 function highlightCurrent(arrayOfArrays){
   for (var i = 0; i < arrayOfArrays.length ; i++){
     for (var j = 0; j < arrayOfArrays[i].length; j++){
       var node = arrayOfArrays[i][j];
       if (node === null){continue;}
-      //TODO: first make sure there is a color in j, add one if there isn't
+      // first make sure there is a color at index j, add one if there isn't
+      if (j >= colors.length){
+        colors.append("#000000".replace(/0/g,function(){return (~~(Math.random()*16)).toString(16);}));
+      }
       highlightNodeC(node, colors[j]);
     }
   }
