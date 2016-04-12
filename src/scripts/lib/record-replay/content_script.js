@@ -329,13 +329,30 @@ function updateDeltas(target) {
 // ***************************************************************************
 
 /* Needed since some event properties are marked as read only */
-function setEventProp(e, prop, value) {
-  Object.defineProperty(e, prop, {value: value});
-  if (e.prop != value) {
-    Object.defineProperty(e, prop, {get: function() {value}});
-    Object.defineProperty(e, prop, {value: value});
+  function setEventProp(e, prop, value) {
+    try {
+      if (e[prop] != value) {
+        e[prop] = value;
+      }
+    } catch(err) {}
+    try {
+      if (e[prop] != value) {
+        Object.defineProperty(e, prop, {value: value});
+      }
+    } catch(err) {}
+    try {
+      if (e[prop] != value) {
+        (function() {
+          var v = value;
+          Object.defineProperty(e, prop, {get: function() {v},
+                                          set: function(arg) {v = arg;}});
+        })();
+        Object.defineProperty(e, prop, {value: value});
+      }
+    } catch(err) {
+      replayLog.log(err);
+    }
   }
-}
 
 /* Check if the current event has timed out.
  *
@@ -484,7 +501,7 @@ function simulate(events, startIndex) {
           document.defaultView, options.keyIdentifier, options.keyLocation,
           options.ctrlKey, options.altKey, options.shiftKey, options.metaKey);
 
-      var propsToSet = []; //['charCode', 'keyCode'];
+      var propsToSet = ['charCode', 'keyCode'];
 
       for (var j = 0, jj = propsToSet.length; j < jj; ++j) {
         var prop = propsToSet[j];

@@ -859,6 +859,7 @@ var Replay = (function ReplayClosure() {
 
       }
       if (!replayPort){
+        console.log(v, portMapping, tabMapping);
         console.log("Freak out.  We don't know what port to use to replay this event.");
       }
       console.log(replayPort);

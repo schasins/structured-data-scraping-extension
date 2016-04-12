@@ -18,10 +18,27 @@
   var scriptEvent = null;
 
   function setEventProp(e, prop, value) {
-    Object.defineProperty(e, prop, {value: value});
-    if (e.prop != value) {
-      Object.defineProperty(e, prop, {get: function() {value}});
-      Object.defineProperty(e, prop, {value: value});
+    try {
+      if (e[prop] != value) {
+        e[prop] = value;
+      }
+    } catch(err) {}
+    try {
+      if (e[prop] != value) {
+        Object.defineProperty(e, prop, {value: value});
+      }
+    } catch(err) {}
+    try {
+      if (e[prop] != value) {
+        (function() {
+          var v = value;
+          Object.defineProperty(e, prop, {get: function() {v},
+                                          set: function(arg) {v = arg;}});
+        })();
+        Object.defineProperty(e, prop, {value: value});
+      }
+    } catch(err) {
+      replayLog.log(err);
     }
   }
 

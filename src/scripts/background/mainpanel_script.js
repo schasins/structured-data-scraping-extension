@@ -156,15 +156,22 @@ function runDemonstration(program, index, row_so_far){
     if (!row_so_far[i].parameterize){
       continue; //don't want to parameterize on texts captured during recorded interactions
     }
-    //use current row's xpaths as arguments to parameterized trace
-    var xpath = row_so_far[i].xpath;
-    parameterized_trace.useXpath("xpath_"+i.toString(), xpath);
+    // use current row's xpaths as arguments to parameterized trace
+    // must check if there actually is an xpath, since this may be a text from uploaded list, rather than scraped list nodes
+    if ("xpath" in row_so_far[i]){
+      var xpath = row_so_far[i].xpath;
+      parameterized_trace.useXpath("xpath_"+i.toString(), xpath);
+    }
     //use current row's strings as arguments to parameterized trace
-    var string = row_so_far[i].text;
-    parameterized_trace.useTypedString("str_"+i.toString(), string);
+    if ("text" in row_so_far[i]){
+      var string = row_so_far[i].text;
+      parameterized_trace.useTypedString("str_"+i.toString(), string);
+    }
     //use current row's frames as arguments to parameterized trace
-    var frame = row_so_far[i].frame;
-    parameterized_trace.useFrame("frame_"+i.toString(), frame);
+    if ("frame" in row_so_far[i]){
+      var frame = row_so_far[i].frame;
+      parameterized_trace.useFrame("frame_"+i.toString(), frame);
+    }
   }
   
   //TODO tabs: must adjust trace so that list-related items (and anything else
@@ -239,7 +246,7 @@ function deepClone(arr){
 
   // first let's check if this is an uploaded list, in which case we don't even need to go to the content script for anything
   if (program_list.uploaded){
-    var ret = program_list.demo_list[lrd.total_counter]; // for upload case, the demo list actually has everything; just return the next item!
+    var ret = {"text": program_list.demo_list[lrd.total_counter]}; // for upload case, the demo list actually has everything; just return the next item!
     lrd.total_counter++;
     return ret;
   }
@@ -538,24 +545,33 @@ function doneRecording(){
 
   //search the trace for any captured data, add that to the first row
   var items = capturesFromTrace(trace);
-  current_demonstration["first_row_elems"] = _.pluck(items, "text");
+  current_demonstration.first_row_elems = _.pluck(items, "text");
   first_row = first_row.concat(items);
   
+  console.log("first_row, using for parameterization: ", first_row);
+
   for (var i = 0; i<first_row.length; i++){
     if (!first_row[i].parameterize){
       continue; //don't want to parameterize on texts captured during recorded interactions
     }
     //get xpaths from the first row so far, parameterize on that
+    // must check if there actually is an xpath, since this may be a text from uploaded list, rather than scraped list nodes
     var xpath = first_row[i].xpath;
-    current_demonstration["parameterized_trace"].parameterizeXpath("xpath_"+i.toString(), xpath);
+    if (xpath){
+      current_demonstration.parameterized_trace.parameterizeXpath("xpath_"+i.toString(), xpath);
+    }
     //get strings from the first row so far, parameterize on that
-    var string = first_row[i]["text"];
-    current_demonstration["parameterized_trace"].parameterizeTypedString("str_"+i.toString(), string);
+    var string = first_row[i].text;
+    if (string){
+      current_demonstration.parameterized_trace.parameterizeTypedString("str_"+i.toString(), string);
+    }
     //get frames from the first row so far, parameterize on that
     //can't think of a case where we'd need more than the last list's frame
     //but I'll keep it this way in case it's needed in future
-    var frame = first_row[i]["frame"];
-    current_demonstration["parameterized_trace"].parameterizeFrame("frame_"+i.toString(), frame);
+    var frame = first_row[i].frame;
+    if (frame){
+      current_demonstration.parameterized_trace.parameterizeFrame("frame_"+i.toString(), frame);
+    }
   }
   
   console.log("trace", trace);
@@ -757,7 +773,11 @@ function handleUploadedList(){
 
       // actually store the data with our progrm
       current_list.demo_list = csvData;
-      if (current_list.demo_list.length > 0) {current_list.first_row_elems = current_list.demo_list[0];}
+      if (current_list.demo_list.length > 0) {
+        current_list.first_row_elems = current_list.demo_list[0];
+        // the next stuff is the line we'll use for parameterization.  we are allowed to parameterize on string, but not on other stuff, so just make the dict below 
+        current_list.first_items = _.map(current_list.demo_list[0], function(text){return{"text":text,"parameterize":true};});
+      }
       current_list.uploaded = true;
     }
     // now that we know how to handle reading data, let's actually read some

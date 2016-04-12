@@ -67,7 +67,7 @@ var TimeoutStrategy = {
       'mousedown': true,
       'mousemove': false,
       'mouseout': false,
-      'mouseover': true,
+      'mouseover': false,
       'mouseup': true,
       'mousewheel': false
       // 'dragenter': false,
@@ -152,7 +152,7 @@ var TimeoutStrategy = {
       enableRequest: true
     },
     logging: {
-      level: 5,
+      level: 1,
       enabled: 'all',
       print: true,
       saved: true
